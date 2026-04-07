@@ -1,0 +1,3 @@
+[submodule "src/pynxtools_microstructure/mtex"]
+	path = src/pynxtools_microstructure/mtex
+	url = https://github.com/FAIRmat-NFDI/mtex.git

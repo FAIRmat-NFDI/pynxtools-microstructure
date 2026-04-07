@@ -1,0 +1,129 @@
+name: Upload Python Package
+
+on:
+  release:
+    types: [published]
+
+env:
+  python-version: 3.12
+  IMAGE: "ghcr.io//pynxtools-microstructure"
+
+jobs:
+  build-docker-image:
+    name: Build NORTH Docker Image
+    uses: ./.github/workflows/publish-north.yml
+    secrets: inherit
+  
+  setup:
+    name: Checkout and Install
+    runs-on: ubuntu-latest
+    outputs:
+      git_tag_version: ${{ steps.git_tag_version.outputs.version }}
+      citation_version: ${{ steps.citation_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Install uv and set the python version to ${{ env.python-version }}
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Git tag version
+        id: git_tag_version
+        run: |
+          GIT_TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$GIT_TAG_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Citation version
+        id: citation_version
+        run: |
+          CITATION_VERSION=$(grep '^version:' CITATION.cff | cut -d' ' -f2)
+          echo "version=$CITATION_VERSION" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Run Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Install uv and set the python version to ${{ env.python-version }}
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Install latest nomad release
+        run: |
+          uv pip install nomad-lab[infrastructure]
+      - name: Install pynxtools-microstructure
+        run: |
+          uv pip install -e ".[dev]"
+      - name: Test with pytest
+        run: pytest tests/
+
+  compare-versions:
+    name: Compare Versions
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if versions mismatch
+        run: |
+          if [ "${{ needs.setup.outputs.git_tag_version }}" != "${{ needs.setup.outputs.citation_version }}" ]; then
+            echo "Version mismatch: Git tag is ${{ needs.setup.outputs.git_tag_version }}, CITATION.cff is ${{ needs.setup.outputs.citation_version }}"
+            exit 1
+          fi
+
+  build:
+    name: Build Package
+    needs:
+      - compare-versions
+      - test
+      - build-docker-image
+      
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Install uv and set the python version to ${{ env.python-version }}
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.python-version }}
+      
+      - name: Overwrite the image tag
+        run: |
+          IMAGE_TAG=$(grep -oP "${{ env.IMAGE }}:\K[^'\",]+" src/pynxtools_microstructure/nomad/north_tools/__init__.py)
+          sed -i "s|${{ env.IMAGE }}:${IMAGE_TAG}|${{ env.IMAGE }}:${GITHUB_REF_NAME}|g" \
+          src/pynxtools_microstructure/nomad/north_tools/__init__.py
+      
+      - name: Build package
+        run: uv build
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+  deploy:
+    name: Upload to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pynxtools-microstructure
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

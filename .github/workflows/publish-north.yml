@@ -1,0 +1,117 @@
+name: Build and publish docker images
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_call:      
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: main
+  UV_VERSION: 0.9
+  PYTHON_VERSION: 3.12
+  NORTH_TOOL_DIR: src/pynxtools_microstructure/nomad/north_tools/microstructure
+  TEST_DATA_DIR: tests/data/north_tools/microstructure
+  TEST_NOTEBOOKS: CommandLine.ipynb
+
+permissions:
+  packages: write
+  contents: read
+  attestations: write
+  id-token: write
+
+jobs:
+  build:
+    name: microstructure image
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }} # list
+      labels: ${{ steps.meta.outputs.labels }} # list
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+          show-progress: true
+          submodules: true
+
+      # Replace driver `Docker' by `Docker-container` to support cache export/import
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          # set latest tag for main branch and tags
+          # https://github.com/docker/metadata-action?tab=readme-ov-file#image-name-and-tag-sanitization
+          tags: |
+            type=ref,event=tag
+            type=ref,event=pr,prefix=pr-
+            type=raw,value=main,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+          flavor: |
+            latest=auto
+
+      - name: Build and export to Jupyter image microstructure image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ env.NORTH_TOOL_DIR }}/Dockerfile
+          build-args: |
+            IMAGE_TAG=${{ env.IMAGE_TAG }}
+            UV_VERSION=${{ env.UV_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: microstructure-image
+          path: ${{ runner.temp }}/microstructure.tar.gz
+  test_and_push_image:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    # https://docs.docker.com/build/ci/github-actions/share-image-jobs/
+    steps:
+      - name: Setup Repository
+        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+          # if: ${{ github.event_name != 'pull_request' }}
+          uses: docker/login-action@v3
+          with:
+            registry: ${{ env.REGISTRY }}
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: microstructure-image
+          path: ${{ runner.temp }}
+          pattern: "!*.dockerbuild" # warning at https://github.com/docker/build-push-action?tab=readme-ov-file
+
+      # Enable this if you are building a Jupyter-based tool.
+      # - name: Load and test in Jupyter container
+      #   run: |
+      #     docker load -i ${{ runner.temp }}/{{cookiecutter.north_tool_name}}.tar.gz
+
+      #     RAW_TAGS="${{ needs.build.outputs.tags }}"
+      #     echo "Raw tags: $RAW_TAGS"
+      #     FIRST_TAG=$(echo "$RAW_TAGS" | tr -s '[:space:]' '\n' | grep -v '^$' | head -n 1)
+      #     echo "Using tag: $FIRST_TAG"
+
+      #     for nb in ${{ env.TEST_NOTEBOOKS }}; do
+      #       echo "Running notebook: $nb"
+      #       docker run \
+      #         --mount type=bind,src=./${{ env.TEST_DATA_DIR }},dst="/home/jovyan/north_test" \
+      #         --rm "$FIRST_TAG" \
+      #         /bin/bash -c "jupyter execute \$HOME/north_test/$nb"
+      #     done
+      #     

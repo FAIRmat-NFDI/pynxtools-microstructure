@@ -1,0 +1,6 @@
+prune *
+exclude *
+recursive-include src/pynxtools_microstructure *.py
+include pyproject.toml README.md
+graft src/pynxtools_microstructure/nomad/example_uploads
+graft src/pynxtools_microstructure/nomad/north_tools/
