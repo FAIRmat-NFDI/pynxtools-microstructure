@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "pynxtools>=0.13.2",
+    "pynxtools-em>=0.4.4", 
 ]
 
 [project.optional-dependencies]
