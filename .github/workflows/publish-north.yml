@@ -1,12 +1,13 @@
 name: Build and publish docker images
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  workflow_call:      
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
+  # workflow_call:
+  workflow_dispatch:    
 
 env:
   REGISTRY: ghcr.io
