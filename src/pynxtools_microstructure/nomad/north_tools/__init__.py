@@ -35,4 +35,6 @@ tool = NORTHTool(
     display_name="microstructure",
 )
 
-microstructure = NorthToolEntryPoint(id_url_safe="pynxtools_microstructure_microstructure", north_tool=tool)
+microstructure = NorthToolEntryPoint(
+    id_url_safe="pynxtools_microstructure_microstructure", north_tool=tool
+)
