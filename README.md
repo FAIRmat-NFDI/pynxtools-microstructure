@@ -31,6 +31,6 @@ More information about this pynxtools plugin is available in the [documentation]
 
 ## Contact person in FAIRmat for this reader
 
-The NOMAD Authors
+Markus Kühbach
 
 <!-- ## How to cite this work -->

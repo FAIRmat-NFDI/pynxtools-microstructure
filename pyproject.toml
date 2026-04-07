@@ -20,7 +20,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pynxtools>=0.12.0",
+    "pynxtools>=0.13.2",
 ]
 
 [project.optional-dependencies]
@@ -59,9 +59,9 @@ north = [
 microstructure = "pynxtools_microstructure.reader:MICROSTRUCTUREReader"
 
 [project.entry-points.'nomad.plugin']
-microstructure_app = "pynxtools_microstructure.nomad.apps:microstructure_app"
-microstructure_north_tool = "pynxtools_microstructure.nomad.north_tools.microstructure"
-microstructure_example_upload = "pynxtools_microstructure.nomad.example_uploads:microstructure_example_upload"
+# microstructure_app = "pynxtools_microstructure.nomad.apps:microstructure_app"
+# microstructure_north_tool = "pynxtools_microstructure.nomad.north_tools.microstructure"
+# microstructure_example_upload = "pynxtools_microstructure.nomad.example_uploads:microstructure_example_upload"
 
 [tool.uv]
 extra-index-url = [
