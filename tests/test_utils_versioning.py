@@ -18,9 +18,12 @@
 
 import re
 
+import pytest
+
 from pynxtools_microstructure import get_pynxtools_microstructure_version
 
 
+@pytest.mark.skip(reason="No tags available yet as we use still git describe --always")
 def test_get_pynxtools_microstructure_version():
     version = get_pynxtools_microstructure_version()
     assert version != "unknown_version"

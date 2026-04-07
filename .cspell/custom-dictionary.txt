@@ -1,7 +1,17 @@
 # Custom Dictionary Words
+Claudia
+Draxl
 Forschungsgemeinschaft
+Heiko
+Kühbach
+Markus
 caplog
 dataconverter
+fairmat
+jovyan
 mainfile
+microstructure
+nfdi
 nxdls
+orcid
 pynxtools

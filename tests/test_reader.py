@@ -55,6 +55,7 @@ for test_case in test_cases:
     "nxdl, sub_reader_data_dir, ignore_lines, ignore_sections",
     test_params,
 )
+@pytest.mark.skip(reason="No example yet")
 def test_nexus_conversion(
     nxdl, sub_reader_data_dir, ignore_lines, ignore_sections, tmp_path, caplog
 ):

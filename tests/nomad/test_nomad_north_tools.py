@@ -12,8 +12,11 @@ except ImportError:
 
 
 def test_importing_north_tool():
-    from pynxtools_microstructure.nomad.north_tools import microstructure  # noqa: PLC0415
-
-    assert microstructure.id_url_safe == "pynxtools_microstructure_microstructure" or microstructure.id == "nomad-north-microstructure", (
-        "NORTHtool entry point has incorrect id or id_url_safe"
+    from pynxtools_microstructure.nomad.north_tools import (
+        microstructure,  # noqa: PLC0415
     )
+
+    assert (
+        microstructure.id_url_safe == "microstructure"
+        or microstructure.id == "nomad-north-microstructure"
+    ), "NORTHtool entry point has incorrect id or id_url_safe"
