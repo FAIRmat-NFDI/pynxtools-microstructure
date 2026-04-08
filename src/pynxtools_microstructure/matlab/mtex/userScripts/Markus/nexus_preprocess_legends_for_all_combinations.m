@@ -1,4 +1,8 @@
-clear; clc;
+function status = nexus_preprocess_legends_for_all_combinations(prefix)
+
+disp('Preprocessing IPF legends for all combinations to ');
+disp(prefix);
+return;
 % proj_vector = [vector3d.X, vector3d.Y, vector3d.Z];
 % proj_name = ['x', 'y', 'z'];
 point_groups = { ...
@@ -23,7 +27,7 @@ for cs = 1:1:length(point_groups)
         else
             prefix = '';
         end
-        png_fnm = ['temporary_mtx_' prefix num2str(cs) '.png'];  % '_' num2str(proj_idx) '.png'];
+        png_fnm = [prefix 'temporary_mtx_' prefix num2str(cs) '.png'];
         exportgraphics(gcf, png_fnm, 'Resolution', 300);
         close all hidden;
         % ... framegrab this image to get the pixel color values (no alpha)
@@ -50,7 +54,7 @@ for cs = 1:1:length(point_groups)
         else
             prefix = '';
         end
-        png_fnm = ['temporary_tsl_' prefix num2str(cs) '.png'];  % '_' num2str(proj_idx) '.png'];
+        png_fnm = [prefix 'temporary_tsl_' prefix num2str(cs) '.png'];
         exportgraphics(gcf, png_fnm, 'Resolution', 300);
         close all hidden;
         im = imread(png_fnm);
@@ -68,5 +72,9 @@ for cs = 1:1:length(point_groups)
         clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj;
     end
 end
-clearvars pg cs prj;
-save('ipf_lgds.mat');
+clearvars pg cs prj ans;
+save([prefix 'ipf_lgds.mat']);
+disp('IPF color legends preprocessed for all combinations.');
+disp('Results are stored in');
+disp([prefix 'ipf_lgds.mat']);
+status = logical(1);

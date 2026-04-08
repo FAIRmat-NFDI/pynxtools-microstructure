@@ -1,4 +1,4 @@
-function status = nexus_write_mtex_preferences(fpath, parent, perform_io)
+function status = nexus_write_mtex_preferences(fpath, parent, perform_io, mtexdir)
 % Export current MTex and Matlab settings to NeXus/HDF5 file
 
 % fpath: path and filename of NeXus/HDF5 results file
@@ -36,10 +36,9 @@ ret = h5w.nexus_write_group(grpnm, attr);
 
 dsnm = [grpnm '/program'];
 attr = io_attributes();
-% generate via CLI command
-% git describe --dirty --tags --long --abbrev=8 --match '*[0-9]*' >mtex-version.txt
-mtex_version = strtrim(fileread([pwd '/mtex-version.txt']));
-attr.add('version', mtex_version);  % mtex_pref.version);
+% generated via ./scripts/mtex.sh
+mtex_version = strtrim(fileread([mtexdir '\src\pynxtools_microstructure\mtex-version.txt']));
+attr.add('version', mtex_version);
 ret = h5w.nexus_write(dsnm, 'MTex', attr);
 %% conventions
 grpnm = [parent '/mtex/conventions'];
