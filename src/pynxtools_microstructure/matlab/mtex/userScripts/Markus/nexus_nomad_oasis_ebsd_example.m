@@ -27,7 +27,7 @@ prefix = fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'use
 addpath(prefix);
 addpath(fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'extern', 'hdfutils'));
 
-compute_all_legends = 1;
+compute_all_legends = 0;
 if compute_all_legends
     nexus_preprocess_legends_for_all_combinations(prefix);
 else

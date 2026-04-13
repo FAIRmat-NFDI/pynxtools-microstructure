@@ -166,7 +166,7 @@ attr = io_attributes();
 ret = h5w.nexus_write(dsnm, uint32(2*ones([1, size(polylines, 1)]))', attr);
 dsnm = [grpnm '/polylines'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/cg_point']);
+attr.add('depends_on', [parent '/microstructure1/cg_point']);
 polylines = grains.boundary.F';
 ret = h5w.nexus_write(dsnm, uint32(reshape(polylines, ...
     [1, 2*length(polylines)])), attr);
@@ -303,9 +303,9 @@ clearvars mi mx;
 ret = h5w.nexus_write(dsnm, uint32(length(unique_interfaces)), attr);
 
 grpnm = [parent '/microstructure1/cg_polyline'];
-dsnm = [grpnm '/indices_interfaces'];
+dsnm = [grpnm '/indices_interface'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/interfaces']);
+attr.add('depends_on', [parent '/microstructure1/interfaces']);
 ret = h5w.nexus_write(dsnm, uint32(indices_patch), attr);
 
 grpnm = [parent '/microstructure1/interfaces'];
@@ -315,7 +315,7 @@ ret = h5w.nexus_write(dsnm, uint32(1), attr);
 % 0 marks the virtual zero grain which specifies the boundary of the ROI !
 dsnm = [grpnm '/indices_crystal'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/crystals']);
+attr.add('depends_on', [parent '/microstructure1/crystals']);
 ret = h5w.nexus_write(dsnm, uint32(crystal_id_pair), attr);
 % do not wonder why crystal_id_pair may include 0, it marks the
 % discretization of the boundary of the ROI !
@@ -455,7 +455,7 @@ ret = h5w.nexus_write(dsnm, phase_id_pair, attr);
 % TODO::export indices_polylines segments
 dsnm = [grpnm '/indices_polylines'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/cg_polyline']);
+attr.add('depends_on', [parent '/microstructure1/cg_polyline']);
 ret = h5w.nexus_write(dsnm, uint32(1:1:size(polylines, 2))', attr);
 clearvars i idx interface_id interface_idx mi mx phase_id_pair crystal_id_pair;
 disp(['Interfaces: OK']);
@@ -474,16 +474,16 @@ attr = io_attributes();
 ret = h5w.nexus_write(dsnm, uint32(1), attr);
 dsnm = [grpnm '/indices_crystal'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/crystals']);
+attr.add('depends_on', [parent '/microstructure1/crystals']);
 ret = h5w.nexus_write(dsnm, uint32(grains.triplePoints.grainId)', attr);
 dsnm = [grpnm '/indices_polyline'];
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/cg_polyline']);
+attr.add('depends_on', [parent '/microstructure1/cg_polyline']);
 ret = h5w.nexus_write(dsnm, uint32(grains.triplePoints.boundaryId)', attr);
 dsnm = [grpnm '/indices_interface'];
 % the adjoining interface, (also see above comment) not necessary
 attr = io_attributes();
-attr.add('use_these', [parent '/microstructure1/interfaces']);
+attr.add('depends_on', [parent '/microstructure1/interfaces']);
 % again subtract 1 to assure and allow a check that we have all visited and
 % have all consistent
 interface_ids = int64(zeros([3, size(grains.triplePoints.boundaryId, 1)]) - 1);
