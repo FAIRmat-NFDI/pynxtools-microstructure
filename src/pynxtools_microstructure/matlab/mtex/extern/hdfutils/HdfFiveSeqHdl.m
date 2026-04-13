@@ -363,13 +363,17 @@ classdef HdfFiveSeqHdl
                     % Be careful and mind the documentation
                     % The HDF5 library uses C-style ordering for multidimensional arrays, while MATLAB uses FORTRAN-style ordering.
                     % The dims and maxdims parameters assume C-style ordering
-                    rank = 1;
-                    dims = [1]; 
-                    maxdims = [1];
-                    if isa(val, "char")
+                    % rank = 1;
+                    % dims = [1]; 
+                    % maxdims = [1];
+                    if isa(val, "char") || isstring(val)
                         obj.dspcid = H5S.create('H5S_SCALAR');
                     else
-                        obj.dspcid = H5S.create_simple(rank, dims, maxdims);
+                        if isscalar(val)
+                            obj.dspcid = H5S.create('H5S_SCALAR');
+                        else
+                            obj.dspcid = H5S.create_simple(1, 1, []);
+                        end
                     end
                     if H5I.is_valid(obj.dspcid)
                         if obj.verbose
@@ -509,7 +513,7 @@ classdef HdfFiveSeqHdl
                            obj.nexus_write_attributes(obj.dsetid, attrs);
                         end
                     end
-                % ##MK::implemement 3d
+                % ##MK::implement 3d
                 end
             end
             if obj.verbose
