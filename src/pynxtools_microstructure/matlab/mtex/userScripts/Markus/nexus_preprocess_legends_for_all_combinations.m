@@ -1,8 +1,6 @@
 function status = nexus_preprocess_legends_for_all_combinations(prefix)
 
-disp('Preprocessing IPF legends for all combinations to ');
-disp(prefix);
-return;
+disp(['Preprocessing IPF legends for all combinations to ', prefix]);
 % proj_vector = [vector3d.X, vector3d.Y, vector3d.Z];
 % proj_name = ['x', 'y', 'z'];
 point_groups = { ...
@@ -23,11 +21,11 @@ for cs = 1:1:length(point_groups)
         figure('visible','off');
         plot(ipf_key_mtx);
         if cs < 10
-            prefix = '0';
+            suffix = '0';
         else
-            prefix = '';
+            suffix = '';
         end
-        png_fnm = [prefix 'temporary_mtx_' prefix num2str(cs) '.png'];
+        png_fnm = ['temporary_mtx_' suffix num2str(cs) '.png'];
         exportgraphics(gcf, png_fnm, 'Resolution', 300);
         close all hidden;
         % ... framegrab this image to get the pixel color values (no alpha)
@@ -44,17 +42,17 @@ for cs = 1:1:length(point_groups)
             end
         end
         ipf_lgd_mtx_dct(pg) = low_level;
-        clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj;
+        clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj prefix;
 
         ipf_key_tsl = ipfTSLKey(crystalSymmetry(pg));       
         figure('visible','off');
         plot(ipf_key_tsl);
         if cs < 10
-            prefix = '0';
+            suffix = '0';
         else
-            prefix = '';
+            suffix = '';
         end
-        png_fnm = [prefix 'temporary_tsl_' prefix num2str(cs) '.png'];
+        png_fnm = ['temporary_tsl_' suffix num2str(cs) '.png'];
         exportgraphics(gcf, png_fnm, 'Resolution', 300);
         close all hidden;
         im = imread(png_fnm);
@@ -69,12 +67,12 @@ for cs = 1:1:length(point_groups)
             end
         end
         ipf_lgd_tsl_dct(pg) = low_level;
-        clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj;
+        clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj prefix;
     end
 end
 clearvars pg cs prj ans;
-save([prefix 'ipf_lgds.mat']);
+save(fullfile(prefix, 'ipf_lgds.mat'));
 disp('IPF color legends preprocessed for all combinations.');
 disp('Results are stored in');
-disp([prefix 'ipf_lgds.mat']);
+disp(fullfile(prefix, 'ipf_lgds.mat'));
 status = logical(1);

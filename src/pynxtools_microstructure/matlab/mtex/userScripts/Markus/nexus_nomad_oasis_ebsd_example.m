@@ -23,20 +23,19 @@ clear; clc;
 %% load preprocessed color maps for all point groups
 % when using pynxtools-microstructure plugin the home directory
 % is SOMEPREFIX/pynxtools_microstructure
-prefix = [pwd '\src\pynxtools_microstructure\matlab\mtex\userScripts\Markus\'];
+prefix = fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'userScripts', 'Markus');
 addpath(prefix);
+addpath(fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'extern', 'hdfutils'));
 
-% adding file writer
-addpath([pwd '\src\pynxtools_microstructure\matlab\mtex\extern\hdfutils\']);
-
-compute_all_legends = 0;
+compute_all_legends = 1;
 if compute_all_legends
     nexus_preprocess_legends_for_all_combinations(prefix);
 else
-    load([prefix 'ipf_lgds.mat']);
+    load(fullfile(prefix, 'ipf_lgds.mat'));
 end
 
 %% define custom mappings for point group whose name differs between TSL/MTex
+flip_y = 0;
 ipf_lgd_tsl_pg_map = containers.Map();
 ipf_lgd_mtx_pg_map = containers.Map();
 % https://orix.readthedocs.io/en/latest/tutorials/inverse_pole_figures.html
@@ -59,41 +58,46 @@ ipf_lgd_mtx_pg_map('-3m1') = '-3m';
 % like the IPF RGB colored OIM maps, so far this was only possible
 % when setting y-flip on by default
 disp('Mapping MTex point group names to closest TSL: OK');
-k = ipf_lgd_tsl_dct.keys;
-v = ipf_lgd_tsl_dct.values;
-for pg = 1:1:length(point_groups)
-    tmp = ipf_lgd_tsl_dct(k{pg});
-    ny = size(tmp, 3);
-    flp = uint8(zeros(size(tmp)));
-    for y = 1:1:ny
-        flp(:, :, ny - y + 1) = tmp(:, :, y);
+if flip_y  % for some versions of NOMAD and H5Web the RGB widget does not
+    % have the flipy button, so we need to flip eventually hard the data
+    % that is a workaround
+    k = ipf_lgd_tsl_dct.keys;
+    v = ipf_lgd_tsl_dct.values;
+    for pg = 1:1:length(point_groups)
+        tmp = ipf_lgd_tsl_dct(k{pg});
+        ny = size(tmp, 3);
+        flp = uint8(zeros(size(tmp)));
+        for y = 1:1:ny
+            flp(:, :, ny - y + 1) = tmp(:, :, y);
+        end
+        ipf_lgd_tsl_dct(k{pg}) = flp;
     end
-    ipf_lgd_tsl_dct(k{pg}) = flp;
-end
-clearvars k v;
-k = ipf_lgd_mtx_dct.keys;
-v = ipf_lgd_mtx_dct.values;
-for pg = 1:1:length(point_groups)
-    tmp = ipf_lgd_mtx_dct(k{pg});
-    ny = size(tmp, 3);
-    flp = uint8(zeros(size(tmp)));
-    for y = 1:1:ny
-        flp(:, :, ny - y + 1) = tmp(:, :, y);
+    clearvars k v;
+    k = ipf_lgd_mtx_dct.keys;
+    v = ipf_lgd_mtx_dct.values;
+    for pg = 1:1:length(point_groups)
+        tmp = ipf_lgd_mtx_dct(k{pg});
+        ny = size(tmp, 3);
+        flp = uint8(zeros(size(tmp)));
+        for y = 1:1:ny
+            flp(:, :, ny - y + 1) = tmp(:, :, y);
+        end
+        ipf_lgd_mtx_dct(k{pg}) = flp;
     end
-    ipf_lgd_mtx_dct(k{pg}) = flp;
+    clearvars k v pg tmp ny flp y;
+    disp('Precomputed IPF legends for all point groups flipped along y: OK');
+else
+    disp('Use precomputed IPF legends for all point groups unflipped: OK');
 end
-clearvars k v pg tmp ny flp y;
-disp('Precomputed IPF legends for all point groups flipped along y: OK');
 
 perform_io = 1;
 project_directory = pwd;
-target_directory = [pwd '\examples\'];
-mtexdir = [pwd];
-configdir = [project_directory];
-inputdir = [pwd '\src\pynxtools_microstructure\mtex\data\EBSD\'];  % 2d
-% inputdir = [pwd '\src\pynxtools_microstructure\mtex\data\EBSD3\'];  % 3d
+target_directory = fullfile(pwd, 'examples');
+mtexdir = fullfile(pwd);
+configdir = fullfile(project_directory);
+inputdir = fullfile(pwd, 'src', 'pynxtools_microstructure', 'mtex', 'data', 'EBSD');  % 2d
+% inputdir = fullfile(pwd, 'src', 'pynxtools_microstructure', 'mtex', 'data', 'EBSD3');  % 3d
 outputdir = target_directory;
-addpath('data/EBSD');
 addpath(mtexdir);
 addpath(configdir);
 addpath(inputdir);
@@ -103,14 +107,14 @@ mtex_plot_default = plottingConvention();
 
 % run the example
 mime_type = 'ctf';
-ifpath_main = [inputdir 'Forsterite.ctf'];
+ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
 ifpath_supp = '';
 
 token = replace( ...
     ifpath_main, ...
     inputdir, ...
     ''); 
-ofpath = [outputdir token '.mtex.h5'];
+ofpath = fullfile(outputdir, [token '.mtex.h5']);
 clearvars token;
 disp(['ifpath_main: ' ifpath_main]);
 disp(['ifpath_supp: ' ifpath_supp]);
@@ -126,6 +130,8 @@ if strcmp(mime_type, 'ctf')
         % nothing
     end
 end
+
+%%
 
 gtic = tic;
 load_tic = tic;
