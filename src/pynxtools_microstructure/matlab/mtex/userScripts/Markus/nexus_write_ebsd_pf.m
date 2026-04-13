@@ -65,11 +65,11 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             kernel_reso = 2.5*degree;
             dsnm = [grpnm '/halfwidth'];
             attr = io_attributes();
-            attr.add('units', '°');
+            attr.add('units', 'degree');
             ret = h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
             dsnm = [grpnm '/resolution'];
             attr = io_attributes();
-            attr.add('units', '°');
+            attr.add('units', 'degree');
             ret = h5w.nexus_write(dsnm, double(kernel_reso / pi * 180.), attr);
             dsnm = [grpnm '/miller_indices'];
             attr = io_attributes();

@@ -11,6 +11,8 @@ function status = nexus_write_ebsd_phase_ipf(ebsd_orig, ebsd_grd, fpath, parent,
 % as white is a valid color in typical IPF plots, black is used to mark
 % pixels which were not indexed to belong to the phase in question
 
+flip_rbg_y = true;  % NOMAD v1.4.2 with H5Web
+
 if ~perform_io
     return;
 end
@@ -120,12 +122,16 @@ for phase_idx = 1:1:n_phases
             % low_level = uint8(uint32(zeros([3 grid(2) grid(1)])));
             for x = 1:1:grid(2)
                 offset = (x - 1) * grid(1);
-                % for y = 1:1:grid(1)
-                %     idx = y + offset;
-                %     low_level(:, x, y) = nxs_ipf_map_u8_f(:, idx);
-                % end
-                % three-times faster than with the loop above
-                low_level(:, x, 1:1:grid(1)) = nxs_ipf_map_u8_f(:, offset+1:1:offset+grid(1));
+                if flip_rbg_y
+                    % for y = 1:1:grid(1)
+                    %     idx = y + offset;
+                    %     low_level(:, x, (grid(1) + 1) - y) = nxs_ipf_map_u8_f(:, idx);
+                    % end
+                    idx = offset + (1:grid(1));
+                    low_level(:, x, :) = nxs_ipf_map_u8_f(:, idx(end:-1:1));
+                else
+                    low_level(:, x, 1:1:grid(1)) = nxs_ipf_map_u8_f(:, offset+1:1:offset+grid(1));
+                end                    
             end
             attr = io_attributes();
             attr.add('long_name', 'IPF color-coded orientation mapping');
@@ -137,7 +143,11 @@ for phase_idx = 1:1:n_phases
             attr = io_attributes();
             attr.add('units', scan_unit);
             attr.add('long_name', ['Calibrated coordinate along y-axis (' scan_unit ')']);
-            ret = h5w.nexus_write(dsnm, nxs_ipf_y, attr);
+            if flip_rbg_y
+                ret = h5w.nexus_write(dsnm, nxs_ipf_y(end:-1:1), attr);
+            else
+                ret = h5w.nexus_write(dsnm, nxs_ipf_y, attr);
+            end
             dsnm = [grpnm '/axis_x'];
             attr = io_attributes();
             attr.add('units', scan_unit);

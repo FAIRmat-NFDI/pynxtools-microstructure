@@ -28,8 +28,8 @@ discretization_threshold = 5;
 % use smaller values to segment sub-grain boundary network
 % do not call like this [grains, ebsd_orig.grainId] as this
 % is extremely slow
-
-disp(['Grain reconstruction ...']);
+% plot(ebsd_orig)
+disp('Grain reconstruction ...');
 % [grains,ebsd_orig.grainId,ebsd_orig.mis2mean] 
 % [grains, ebsd_orig.grainId] 
 grains = calcGrains( ...
@@ -37,7 +37,7 @@ grains = calcGrains( ...
     'boundary', 'tight', ...
     'angle', disorientation_threshold, ...
     'minPixel', discretization_threshold);
-disp(['Grain reconstruction: OK']);
+disp('Grain reconstruction: OK');
 % plot(grains)
 % use [val , idx] = max(grains.area('2d')); to find the largest grain
 % alternative grain reconstruction methods exist e.g.
@@ -86,7 +86,7 @@ attr = io_attributes();
 ret = h5w.nexus_write(dsnm, 'indexed, boundary, tight', attr);
 dsnm = [grpnm '/disorientation_threshold'];
 attr = io_attributes();
-attr.add('units', '°');
+attr.add('units', 'degree');
 ret = h5w.nexus_write(dsnm, disorientation_threshold / degree, attr);
 dsnm = [grpnm '/discretization_threshold'];
 attr = io_attributes();
@@ -118,7 +118,7 @@ end
 % summary statistics can be computed
 
 %% instantiate storage of representation of the primitives
-disp(['Primitives ...']);
+disp('Primitives ...');
 grpnm = [parent '/microstructure1'];
 dsnm = [grpnm '/dimensionality'];
 attr = io_attributes();
@@ -181,10 +181,10 @@ attr = io_attributes();
 attr.add('units', scan_unit);
 ret = h5w.nexus_write(dsnm, facet_length, attr);
 clearvars p_u p_v facet_length;
-disp(['Primitives: OK']);
+disp('Primitives: OK');
 
 %% store crystals/grains
-disp(['Crystals ...']);
+disp('Crystals ...');
 grpnm = [parent '/microstructure1/crystals'];
 attr = io_attributes();
 attr.add('NX_class', 'NXobject');
@@ -202,7 +202,11 @@ ret = h5w.nexus_write(dsnm, double(grains.numPixel), attr);  %  * area_per_ebsd_
 clearvars area_per_ebsd_pixel;
 dsnm = [grpnm '/area_by_mtex'];
 attr = io_attributes();
-attr.add('units', [scan_unit, '^2']);
+if strcmp(scan_unit, 'µm')
+    attr.add('units', 'micrometer ** 2');
+else
+    attr.add('units', [scan_unit '** 2']);
+end
 ret = h5w.nexus_write(dsnm, double(grains.area('2d')), attr);
 dsnm = [grpnm '/indices_phase'];
 attr = io_attributes();
@@ -215,7 +219,7 @@ ret = h5w.nexus_write(dsnm, uint8(grains.isBoundary), attr);
 % TODO write out as bitfield, currently happening via pynxtools-em
 dsnm = [grpnm '/orientation_spread'];
 attr = io_attributes();
-attr.add( 'units', '°');
+attr.add( 'units', 'degree');
 ret = h5w.nexus_write(dsnm, double(grains.GOS / degree), attr);
 grpnm = [parent '/microstructure1/crystals/orientation'];
 attr = io_attributes();
@@ -240,7 +244,7 @@ ret = h5w.nexus_write(dsnm, double(quat), attr);
 % as a solution meanOrientation is collected in the loop that collects
 % per boundary misorientation
 clearvars quat;
-disp(['Crystals: OK']);
+disp('Crystals: OK');
 % https://mtex-toolbox.github.io/GrainOrientationParameters.html
 % gam = ebsd_orig.grainMean(ebsd_orig.KAM, grains);
 
@@ -259,7 +263,7 @@ disp(['Crystals: OK']);
 % [val, idx] = max(grains.area('2d'));
 
 %% polyline segment to interface patches
-disp(['Interfaces ...']);
+disp('Interfaces ...');
 grpnm = [parent '/microstructure1/interfaces'];
 attr = io_attributes();
 attr.add('NX_class', 'NXobject');
@@ -287,11 +291,11 @@ for i = 1:1:length(grains.boundary)
         indices_patch(i) = interface_lu_to_interface_idx(lu_key);
     else
         disp([num2str(i) ', ' lu_key]);
-        error(['Unable to find lu_key in interface_lu_to_interface_idx !']);
+        error('Unable to find lu_key in interface_lu_to_interface_idx !');
     end
 end
 if any(indices_patch < 0)
-    error(['Indices patch are inconsistent !']);
+    error('Indices patch are inconsistent !');
 end
 % includes interfaces of crystals to the edge of the ROI / boundary
 crystal_id_pair = uint32(zeros([2, length(unique_interfaces)]));
@@ -321,7 +325,7 @@ ret = h5w.nexus_write(dsnm, uint32(crystal_id_pair), attr);
 % discretization of the boundary of the ROI !
 clearvars unique_interfaces;
 
-disp(['Interfaces misorientation ...']);
+disp('Interfaces misorientation ...');
 % compute misorientation for interface patches (not individual segments)
 % as all segments of the patch for 2d have the same misorientation
 % boundary plane of course is a per segment quantity but this is stored
@@ -393,18 +397,18 @@ attr.add('NX_class', 'NXcollection');
 ret = h5w.nexus_write_group(grpnm, attr);
 dsnm = [grpnm '/misorientation_euler'];
 attr = io_attributes();
-attr.add('units', '°');
+attr.add('units', 'degree');
 ret = h5w.nexus_write(dsnm, double(misori_euler_fast), attr);
 dsnm = [grpnm '/misorientation_angle'];
 attr = io_attributes();
-attr.add('units', '°');
+attr.add('units', 'degree');
 ret = h5w.nexus_write(dsnm, double(misori_angle_fast), attr);
 dsnm = [grpnm '/min_max_lookup_key'];
 attr = io_attributes();
 attr.add('comment', 'Misorientation between disjoint crystals, hashing function uint64(mi) + uint64(2^32) * uint64(mx)');
 ret = h5w.nexus_write(dsnm, uint64(lu_keys), attr);
 clearvars misori_euler_fast misori_angle_fast;
-disp(['Interface misorientation: OK']);
+disp('Interface misorientation: OK');
 
 grpnm = [parent '/microstructure1/interfaces'];
 dsnm = [grpnm '/indices_phase'];
@@ -458,10 +462,10 @@ attr = io_attributes();
 attr.add('depends_on', [parent '/microstructure1/cg_polyline']);
 ret = h5w.nexus_write(dsnm, uint32(1:1:size(polylines, 2))', attr);
 clearvars i idx interface_id interface_idx mi mx phase_id_pair crystal_id_pair;
-disp(['Interfaces: OK']);
+disp('Interfaces: OK');
 
 %% triple junctions
-disp(['Triple junctions ...']);
+disp('Triple junctions ...');
 grpnm = [parent '/microstructure1/triple_junctions'];
 attr = io_attributes();
 attr.add('NX_class', 'NXobject');
@@ -505,7 +509,7 @@ for idx = 1:1:size(bnd_idxs, 2)
                 & interface_ids(3, idx) == c_bnd
             continue;
         else
-            error(['At least one triple junction is incorrectly handled !']);
+            error('At least one triple junction is incorrectly handled !');
         end
     end
 end
@@ -515,12 +519,12 @@ if min(min(interface_ids)) >= 0 & max(max(interface_ids)) < int64(2^32)
     % only when both constraints are met !
     interface_ids = uint32(interface_ids);
 else
-    error(['At least on interface_id is incorrectly >= 2^32 !']);
+    error('At least on interface_id is incorrectly >= 2^32 !');
 end
 clearvars idx a_bnd_lu_key b_bnd_lu_key c_bnd_lu_key a_bnd b_bnd c_bnd;
 ret = h5w.nexus_write(dsnm, interface_ids, attr);
 clearvars interface_ids hash_to_interface_id segment_to_patch ret;
-disp(['Triple junctions: OK']);
+disp('Triple junctions: OK');
 
 dsnm = ['/entry1/profiling/microstructure_elapsed_time'];
 ms_wall_clock = toc(ms_tic);
@@ -529,6 +533,6 @@ attr.add('units', 's');
 h5w.nexus_write(dsnm, double(ms_wall_clock), attr);
 
 disp('NeXus/HDF5 exporting of microstructure: OK');
-status = logical(1);
+status = true;
 
 end

@@ -371,6 +371,11 @@ classdef HdfFiveSeqHdl
                     else
                         if isscalar(val)
                             obj.dspcid = H5S.create('H5S_SCALAR');
+                            % islogical(x)
+                            % space = H5S.create('H5S_SCALAR');
+                            % type = H5T.copy('H5T_STD_U8LE');
+                            % H5T.set_size(type,1);
+                            % dset = H5D.create(fid,'/bool',type,space,'H5P_DEFAULT');
                         else
                             obj.dspcid = H5S.create_simple(1, 1, []);
                         end

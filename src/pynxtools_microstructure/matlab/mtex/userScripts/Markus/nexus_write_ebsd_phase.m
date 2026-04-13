@@ -97,15 +97,15 @@ for phase_idx = 1:1:n_phases
         
         dsnm = [grpnm '/alpha'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, ebsd_orig.CSList{phase_idx}.alpha / pi * 180., attr);
         dsnm = [grpnm '/beta'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, ebsd_orig.CSList{phase_idx}.beta / pi * 180., attr);
         dsnm = [grpnm '/gamma'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, ebsd_orig.CSList{phase_idx}.gamma / pi * 180., attr);
         % rad to deg
         attr = io_attributes();

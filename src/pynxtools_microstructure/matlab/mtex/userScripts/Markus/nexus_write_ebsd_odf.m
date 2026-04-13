@@ -53,11 +53,11 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         ret = h5w.nexus_write(dsnm, 'de_la_vallee_poussin', attr);
         dsnm = [grpnm '/kernel_halfwidth'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
         dsnm = [grpnm '/resolution'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, double(odf_reso / pi * 180.), attr);
 
         % exemplar code for different types of ODFs
@@ -141,20 +141,20 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
 
         dsnm = [grpnm '/varphi_one'];
         attr = io_attributes();
-        attr.add('units', '°');
-        attr.add('long_name', ['phi_1 (°)']);
+        attr.add('units', 'degree');
+        attr.add('long_name', ['phi_1 (degree)']);
         e1 = double((0.5 + ((1:1:n_e1) - 1)) * n_resolution);
         ret = h5w.nexus_write(dsnm, e1, attr);
         dsnm = [grpnm '/capital_phi'];
         attr = io_attributes();
-        attr.add('units', '°');
-        attr.add('long_name', ['Phi (°)']);
+        attr.add('units', 'degree');
+        attr.add('long_name', ['Phi (degree)']);
         e2 = double((0.5 + ((1:1:n_e2) - 1)) * n_resolution);
         ret = h5w.nexus_write(dsnm, e2, attr);
         dsnm = [grpnm '/varphi_two'];
         attr = io_attributes();
-        attr.add('units', '°');
-        attr.add('long_name', ['phi_2 (°)']);
+        attr.add('units', 'degree');
+        attr.add('long_name', ['phi_2 (degree)']);
         e3 = double((0.5 + ((1:1:n_e3) - 1)) * n_resolution);
         ret = h5w.nexus_write(dsnm, e3, attr);
         clearvars n_e1 n_e2 n_e3 interp_pts interp_values n_resolution;
@@ -196,7 +196,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         ret = h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/theta'];
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, double(delta / pi * 180.), attr);
         dsnm = [grpnm '/kth'];
         attr = io_attributes();
@@ -208,7 +208,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         e1_e2_e3(2, :) = maxima(:).Phi / degree;
         e1_e2_e3(3, :) = maxima(:).phi2 / degree;
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
         clearvars e1_e2_e3;
         dsnm = [grpnm '/intensity'];
@@ -245,7 +245,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         e1_e2_e3(2, :) = ori_nc(:).Phi / degree;
         e1_e2_e3(3, :) = ori_nc(:).phi2 / degree;
         attr = io_attributes();
-        attr.add('units', '°');
+        attr.add('units', 'degree');
         ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
         dsnm = [grpnm '/volume_fraction'];
         attr = io_attributes();

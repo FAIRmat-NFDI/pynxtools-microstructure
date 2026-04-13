@@ -65,7 +65,7 @@ def hfive_dataset_to_template(
             template[trg_path] = value
     elif obj[src_path].shape == (1,):
         logger.warning(
-            f"Detecting a potentially unnecessary 1d array with only one value {trg_path}"
+            f"Having to unroll an unnecessary promotion of a scalar to a 1d array {trg_path}"
         )
         template[trg_path] = np.asarray(obj[src_path])[0]
     else:
@@ -170,7 +170,6 @@ class NxEmNxsMtexParser:
                 f"Parsing {self.file_path} MTex with SHA256 {self.file_path_sha256} ..."
             )
             # KNOWN BUGS
-            # BUG in MTex script still sometimes () values written not as a scalar dataset
             # BUG in MTex script still sometimes booleans mapped to uint8
             # BUG in nxdata model memory should not be unitless
             # BUG in nxdata model NXem roi not recognized?
@@ -300,7 +299,7 @@ class NxEmNxsMtexParser:
                     src, dst_name, "units", trg, dst_name, "units", h5r, template
                 )
 
-            for idx in [1, 2]:
+            for idx in [1, 2, 3]:
                 src = f"{src_prfx}/program{idx}"
                 trg = f"/ENTRY[entry{self.entry_id}]/profiling/eventID[event_mtex]/PROGRAM[program{idx}]"
                 for dst_name in ["program"]:
@@ -524,22 +523,16 @@ class NxEmNxsMtexParser:
 
             src = f"{src_prfx}/configuration"
             trg = f"{trg_prfx}/configuration"
-            template[f"{trg}/algorithm"] = (
-                "disorientation_clustering"  # BUG in MTex script
-            )
-            for dst_name in ["comments", "discretization_threshold"]:
+            # template[f"{trg}/algorithm"] = (
+            #     "disorientation_clustering"  # BUG in MTex script
+            # )
+            for dst_name in ["algorithm", "comments", "discretization_threshold"]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-            template[f"{trg}/disorientation_threshold"] = np.float64(15.0)
-            template[f"{trg}/disorientation_threshold/@units"] = "°"
-            # for dst_name in ["disorientation_threshold"]:
-            #     hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-            #     hfive_attribute_to_template(
-            #         src, dst_name, "units", trg, dst_name, "units", h5r, template
-            #     )
-            # not stored by the MTex script
-            # https://github.com/FAIRmat-NFDI/mtex/blob/91ef5185388419acdb75559fd4252099dcbf24de/
-            # userScripts/FAIRmat-NFDI/nexus_write_ebsd_microstructure.m#L25
-
+            for dst_name in ["disorientation_threshold"]:
+                hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+                hfive_attribute_to_template(
+                    src, dst_name, "units", trg, dst_name, "units", h5r, template
+                )
             src = f"{src_prfx}/crystals"
             trg = f"{trg_prfx}/crystals"
             for dst_name in [
