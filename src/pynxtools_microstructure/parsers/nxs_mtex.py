@@ -171,8 +171,15 @@ class NxEmNxsMtexParser:
             )
             # KNOWN BUGS
             # BUG in MTex script still sometimes booleans mapped to uint8
+            # this is what h5py does under the hood
+            # enum_type = H5T.enum_create(base_type);
+            # H5T.enum_insert(enum_type, 'FALSE', uint8(0));
+            # H5T.enum_insert(enum_type, 'TRUE',  uint8(1));
             # BUG in nxdata model memory should not be unitless
             # BUG in nxdata model NXem roi not recognized?
+            # BUG in nxdata refactor use_these to depends_on
+            # BUG in validation, likely path traversal, fix field, group bug for depends_on of NXmicrostructure_feature
+
             self.parse_profiling(template)
             self.parse_mtex_config(template)
             self.parse_various(template)
@@ -284,7 +291,6 @@ class NxEmNxsMtexParser:
                 "stop_on_symmetry_mismatch",
             ]:
                 template[f"{trg}/{dst_name}"] = bool(h5r[f"{src}/{dst_name}"])
-            # BUG in MTex script, does not write pure HDF5 booleans but promotes these to uint8
             for dst_name in [
                 "text_interpreter",
                 "voronoi_method",
@@ -523,9 +529,6 @@ class NxEmNxsMtexParser:
 
             src = f"{src_prfx}/configuration"
             trg = f"{trg_prfx}/configuration"
-            # template[f"{trg}/algorithm"] = (
-            #     "disorientation_clustering"  # BUG in MTex script
-            # )
             for dst_name in ["algorithm", "comments", "discretization_threshold"]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
             for dst_name in ["disorientation_threshold"]:
@@ -536,6 +539,7 @@ class NxEmNxsMtexParser:
             src = f"{src_prfx}/crystals"
             trg = f"{trg_prfx}/crystals"
             for dst_name in [
+                "area",
                 "area_by_pixel",
                 "boundary_contact",
                 "index_offset",
@@ -543,12 +547,6 @@ class NxEmNxsMtexParser:
                 "number_of_crystals",
             ]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-            if f"{src}/area_by_mtex" in h5r:
-                template[f"{trg}/area"] = {
-                    "compress": h5r[f"{src}/area_by_mtex"][...],
-                    "strength": h5r[f"{src}/area_by_mtex"].compression_opts,
-                }
-                template[f"{trg}/area/@units"] = "micrometer ** 2"  # BUG in MTex
             # TODO orientation
 
             src = f"{src_prfx}/interfaces"

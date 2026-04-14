@@ -67,7 +67,6 @@ classdef HdfFiveSeqHdl
         end
 %% nexus_write_group
         function r = nexus_write_group(obj, grpnm, attrs)
-            % disp(['grp: ' grpnm]);
             obj.fileid = H5F.open(obj.h5resultsfn, 'H5F_ACC_RDWR', 'H5P_DEFAULT');
             if H5I.is_valid(obj.fileid)
                 clean_abs_path = clean_h5_path(grpnm);
@@ -77,11 +76,11 @@ classdef HdfFiveSeqHdl
                     disp('Checking a chain of hopefully existing links...');
                 end
                 curr_loc_id = obj.fileid;
-                % curr_group = '';
-                % https://gist.github.com/jzrake/3025642
                 for i = 1:length(level_by_level)
-                    curr_group = level_by_level{i}; % ['/', level_by_level{i}];
+                    curr_group = level_by_level{i};
                     if obj.verbose
+                        disp(['Writing attributes at level: ', curr_group]);
+                        disp(['i = ', num2str(i), ', total = ', num2str(length(level_by_level))]);
                         disp(['Currently visiting __', curr_group, '__']);
                     end
                     if H5L.exists(curr_loc_id, curr_group, 'H5P_DEFAULT')
@@ -110,13 +109,12 @@ classdef HdfFiveSeqHdl
                             disp([curr_group, ' --> created']);
                         end
                         if H5I.is_valid(next_loc_id)
+                            if i == length(level_by_level)
+                                obj.nexus_write_attributes( ...
+                                    next_loc_id, attrs);
+                            end
                             if curr_loc_id ~= obj.fileid
-                                % check if we have arrived at the leaf, write attributes then
                                 if H5I.is_valid(curr_loc_id)
-                                    if i == length(level_by_level)
-                                        obj.nexus_write_attributes( ...
-                                            next_loc_id, attrs);
-                                    end
                                     H5G.close(curr_loc_id);
                                 end
                             end
@@ -371,11 +369,6 @@ classdef HdfFiveSeqHdl
                     else
                         if isscalar(val)
                             obj.dspcid = H5S.create('H5S_SCALAR');
-                            % islogical(x)
-                            % space = H5S.create('H5S_SCALAR');
-                            % type = H5T.copy('H5T_STD_U8LE');
-                            % H5T.set_size(type,1);
-                            % dset = H5D.create(fid,'/bool',type,space,'H5P_DEFAULT');
                         else
                             obj.dspcid = H5S.create_simple(1, 1, []);
                         end
@@ -384,15 +377,20 @@ classdef HdfFiveSeqHdl
                         if obj.verbose
                             disp('H5I.is_valid(obj.dspcid)');
                         end
-                        obj.dsetid = H5D.create(obj.fileid, clean_abs_path, dtyp, ...
-                            obj.dspcid, 'H5P_DEFAULT', 'H5P_DEFAULT', 'H5P_DEFAULT');
+                        %if ~islogical(val)
+                        obj.dsetid = H5D.create( ...
+                            obj.fileid, clean_abs_path, dtyp, ...
+                            obj.dspcid, 'H5P_DEFAULT', ...
+                            'H5P_DEFAULT', 'H5P_DEFAULT');
+                        %else
+                        %    obj.dsetid = H5D.create(fid,'/bool',type,space,'H5P_DEFAULT');
+                        %end
+
                         if H5I.is_valid(obj.dsetid)
-                            % maybe this branch is unnecessary ##MKas the
-                            % branch code is the same in both cases
                             if obj.verbose
                                 disp('H5I.is_valid(obj.dsetid)');
                             end
-                            H5D.write(obj.dsetid, dtyp, 'H5S_ALL', obj.dspcid, 'H5P_DEFAULT', val);  % before 'H5S_ALL'
+                            H5D.write(obj.dsetid, dtyp, 'H5S_ALL', obj.dspcid, 'H5P_DEFAULT', val);
                             if obj.verbose
                                 disp(['Writing ', clean_abs_path, ' scalar success']);
                             end

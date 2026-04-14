@@ -45,7 +45,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             ret = h5w.nexus_write_group(grpnm, attr);
             grpnm = [parent '/pf1/pf' num2str(pf_id) '/configuration'];
             attr = io_attributes();
-            attr.add('NX_class', 'NXobject');
+            attr.add('NX_class', 'NXparameters');
             ret = h5w.nexus_write_group(grpnm, attr);
 
             phase_name = ebsd_orig.mineralList{phase_idx};

@@ -187,7 +187,7 @@ disp('Primitives: OK');
 disp('Crystals ...');
 grpnm = [parent '/microstructure1/crystals'];
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXmicrostructure_feature');
 ret = h5w.nexus_write_group(grpnm, attr);
 dsnm = [grpnm '/number_of_crystals'];
 attr = io_attributes();
@@ -200,7 +200,7 @@ dsnm = [grpnm '/area_by_pixel'];  % which type of area all pixels, polygon area?
 attr = io_attributes();
 ret = h5w.nexus_write(dsnm, double(grains.numPixel), attr);  %  * area_per_ebsd_pixel
 clearvars area_per_ebsd_pixel;
-dsnm = [grpnm '/area_by_mtex'];
+dsnm = [grpnm '/area'];
 attr = io_attributes();
 if strcmp(scan_unit, 'µm')
     attr.add('units', 'micrometer ** 2');
@@ -266,7 +266,7 @@ disp('Crystals: OK');
 disp('Interfaces ...');
 grpnm = [parent '/microstructure1/interfaces'];
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXmicrostructure_feature');
 ret = h5w.nexus_write_group(grpnm, attr);
 % eventually of multiple such segments because the vertices from MTex
 % represent on the one hand vertices at triple points and virtual
@@ -468,7 +468,7 @@ disp('Interfaces: OK');
 disp('Triple junctions ...');
 grpnm = [parent '/microstructure1/triple_junctions'];
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXmicrostructure_feature');
 ret = h5w.nexus_write_group(grpnm, attr);
 dsnm = [grpnm '/number_of_junctions'];
 attr = io_attributes();

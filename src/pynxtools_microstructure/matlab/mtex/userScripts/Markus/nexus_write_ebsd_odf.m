@@ -31,7 +31,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/configuration'];
         attr = io_attributes();
-        attr.add('NX_class', 'NXobject');
+        attr.add('NX_class', 'NXparameters');
         ret = h5w.nexus_write_group(grpnm, attr);
 
         phase_name = ebsd_orig.mineralList{phase_idx};
@@ -162,7 +162,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         % ODF characteristics
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/characteristics'];
         attr = io_attributes();
-        attr.add('NX_class', 'NXobject');
+        attr.add('NX_class', 'NXprocess');
         ret = h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/texture_index'];
         tindex = norm(odf)^2;
@@ -192,7 +192,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         delta = 10.*degree;
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/kth_extrema'];
         attr = io_attributes();
-        attr.add('NX_class', 'NXobject');
+        attr.add('NX_class', 'NXprocess');
         ret = h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/theta'];
         attr = io_attributes();
@@ -236,7 +236,7 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         % together via a crawler
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/noncircular'];
         attr = io_attributes();
-        attr.add('NX_class', 'NXobject');
+        attr.add('NX_class', 'NXprocess');
         ret = h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/location'];
         [ori_nc, vol_nc] = calcComponents(odf);
