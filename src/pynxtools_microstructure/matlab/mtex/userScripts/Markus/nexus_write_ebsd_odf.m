@@ -13,8 +13,11 @@ odf_tic = tic;
 
 h5w = HdfFiveSeqHdl(fpath);
 
-phase_id = 1;
-for phase_idx = 2:1:length(ebsd_orig.mineralList)
+kth_extrema_io = 0;
+non_circular_io = 0;
+
+phase_id = 0;
+for phase_idx = 1:1:length(ebsd_orig.mineralList)
     if min(ebsd_orig.phaseMap) == -1
         n_count = sum(sum(ebsd_orig.phase == (phase_id - 1)));
     elseif min(ebsd_orig.phaseMap) == 0
@@ -23,7 +26,11 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         error('ERROR: The phaseMap for this EBSD map uses an unexpected indexing!');
     end
 
+    disp(['nexus_write_ebsd_odf ' num2str(phase_idx) '/' num2str(length(ebsd_orig.mineralList)) ' ' ebsd_orig.mineralList{phase_idx} ' phase_id ' num2str(phase_id) ' n_count ' num2str(n_count)]);
+
     if ~strcmp(ebsd_orig.mineralList{phase_idx}, 'notIndexed') & n_count > 0
+        phase_name = ebsd_orig.mineralList{phase_idx};
+        
         grpnm = [parent '/phase' num2str(phase_id) '/odf1'];
         attr = io_attributes();
         attr.add('NX_class', 'NXmicrostructure_odf');
@@ -169,91 +176,96 @@ for phase_idx = 2:1:length(ebsd_orig.mineralList)
         attr = io_attributes();
         ret = h5w.nexus_write(dsnm, double(tindex), attr);
         clearvars tindex;
-        % entropy in the example
-        % https://mtex-toolbox.github.io/ODFCharacteristics.html
-        % reported was not a complex-value quantity but here it is
-        % we do not report this here but would be possible via
-        % storing a pair of double real, imaginary part in the HDF5 file
-        % dsnm = [grpnm '/entropy'];
-        % entrpy = entropy(odf);
-        % attr = io_attributes();        
-        % ret = h5w.nexus_write(dsnm, entrpy, attr);
-        % clearvars entrpy;
 
-        % classical component analysis as used for often alloys can use
-        % e.g. fcc cube, goss, brass, copper
-        % components = orientation.byEuler(...
-        %     [ 0.,  0., 35.,  0.]*degree, ...
-        %     [ 0., 45., 45., 35.]*degree, ...
-        %     [ 0.,  0.,  0., 45.]*degree, cs, ss);
-        % the same machinery as for here shown k-th extrema
-        % locations of the three highest intensities of the ODF
-        kth = 3;
-        delta = 10.*degree;
-        grpnm = [parent '/phase' num2str(phase_id) '/odf1/kth_extrema'];
-        attr = io_attributes();
-        attr.add('NX_class', 'NXprocess');
-        ret = h5w.nexus_write_group(grpnm, attr);
-        dsnm = [grpnm '/theta'];
-        attr = io_attributes();
-        attr.add('units', 'degree');
-        ret = h5w.nexus_write(dsnm, double(delta / pi * 180.), attr);
-        dsnm = [grpnm '/kth'];
-        attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, uint32(kth), attr);
-        dsnm = [grpnm '/location'];
-        [intensity, maxima] = max(odf, 'numLocal', kth);
-        e1_e2_e3 = zeros(3, length(maxima));
-        e1_e2_e3(1, :) = maxima(:).phi1 / degree;
-        e1_e2_e3(2, :) = maxima(:).Phi / degree;
-        e1_e2_e3(3, :) = maxima(:).phi2 / degree;
-        attr = io_attributes();
-        attr.add('units', 'degree');
-        ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
-        clearvars e1_e2_e3;
-        dsnm = [grpnm '/intensity'];
-        attr = io_attributes();
-        attr.add('comment', 'odf intensity normalized to random odf');
-        ret = h5w.nexus_write(dsnm, intensity, attr);
-        clearvars intensity;
-        % classical volume fraction with classical disorientation threshold
-        dsnm = [grpnm '/volume_fraction'];
-        V = zeros([1, length(maxima)]);
-        for i = 1:1:length(maxima)
-            V(i) = volume(odf, maxima(i), delta);  % fraction * 100.; % in percent
+        if kth_extrema_io
+            % entropy in the example
+            % https://mtex-toolbox.github.io/ODFCharacteristics.html
+            % reported was not a complex-value quantity but here it is
+            % we do not report this here but would be possible via
+            % storing a pair of double real, imaginary part in the HDF5 file
+            % dsnm = [grpnm '/entropy'];
+            % entrpy = entropy(odf);
+            % attr = io_attributes();        
+            % ret = h5w.nexus_write(dsnm, entrpy, attr);
+            % clearvars entrpy;
+    
+            % classical component analysis as used for often alloys can use
+            % e.g. fcc cube, goss, brass, copper
+            % components = orientation.byEuler(...
+            %     [ 0.,  0., 35.,  0.]*degree, ...
+            %     [ 0., 45., 45., 35.]*degree, ...
+            %     [ 0.,  0.,  0., 45.]*degree, cs, ss);
+            % the same machinery as for here shown k-th extrema
+            % locations of the three highest intensities of the ODF
+            kth = 3;
+            delta = 10.*degree;
+            grpnm = [parent '/phase' num2str(phase_id) '/odf1/kth_extrema'];
+            attr = io_attributes();
+            attr.add('NX_class', 'NXprocess');
+            ret = h5w.nexus_write_group(grpnm, attr);
+            dsnm = [grpnm '/theta'];
+            attr = io_attributes();
+            attr.add('units', 'degree');
+            ret = h5w.nexus_write(dsnm, double(delta / pi * 180.), attr);
+            dsnm = [grpnm '/kth'];
+            attr = io_attributes();
+            ret = h5w.nexus_write(dsnm, uint32(kth), attr);
+            dsnm = [grpnm '/location'];
+            [intensity, maxima] = max(odf, 'numLocal', kth);
+            disp(maxima);
+            e1_e2_e3 = zeros(3, length(maxima));
+            e1_e2_e3(1, :) = maxima(:).phi1 / degree;
+            e1_e2_e3(2, :) = maxima(:).Phi / degree;
+            e1_e2_e3(3, :) = maxima(:).phi2 / degree;
+            attr = io_attributes();
+            attr.add('units', 'degree');
+            ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
+            clearvars e1_e2_e3;
+            dsnm = [grpnm '/intensity'];
+            attr = io_attributes();
+            attr.add('comment', 'odf intensity normalized to random odf');
+            ret = h5w.nexus_write(dsnm, intensity, attr);
+            clearvars intensity;
+            % classical volume fraction with classical disorientation threshold
+            dsnm = [grpnm '/volume_fraction'];
+            V = zeros([1, length(maxima)]);
+            for i = 1:1:length(maxima)
+                V(i) = volume(odf, maxima(i), delta);  % fraction * 100.; % in percent
+            end
+            % modernized normalization of the volume fraction
+            % V = volume(odf, components, delta) ./ ...
+            %    volume(uniformODF(odf.CS), double(components), delta);
+            attr = io_attributes();
+            attr.add('comment1', 'NX_DIMENSIONLESS');
+            attr.add('comment2', 'Components may overlap with the search region defined by theta !');
+            attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
+            ret = h5w.nexus_write(dsnm, double(V), attr);
+            clearvars kth delta maxima V;
         end
-        % modernized normalization of the volume fraction
-        % V = volume(odf, components, delta) ./ ...
-        %    volume(uniformODF(odf.CS), double(components), delta);
-        attr = io_attributes();
-        attr.add('comment1', 'NX_DIMENSIONLESS');
-        attr.add('comment2', 'Components may overlap with the search region defined by theta !');
-        attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
-        ret = h5w.nexus_write(dsnm, double(V), attr);
-        clearvars kth delta maxima V;
 
-        % modern analysis of non circular components that are close
-        % together via a crawler
-        grpnm = [parent '/phase' num2str(phase_id) '/odf1/noncircular'];
-        attr = io_attributes();
-        attr.add('NX_class', 'NXprocess');
-        ret = h5w.nexus_write_group(grpnm, attr);
-        dsnm = [grpnm '/location'];
-        [ori_nc, vol_nc] = calcComponents(odf);
-        e1_e2_e3 = zeros(3, length(ori_nc));
-        e1_e2_e3(1, :) = ori_nc(:).phi1 / degree;
-        e1_e2_e3(2, :) = ori_nc(:).Phi / degree;
-        e1_e2_e3(3, :) = ori_nc(:).phi2 / degree;
-        attr = io_attributes();
-        attr.add('units', 'degree');
-        ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
-        dsnm = [grpnm '/volume_fraction'];
-        attr = io_attributes();
-        attr.add('comment1', 'NX_DIMENSIONLESS');
-        attr.add('comment2', 'Components may overlap with the search region defined by theta !');
-        attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
-        ret = h5w.nexus_write(dsnm, vol_nc, attr);  
-        clearvars ori_nc vol_nc e1_e2_e3;
+        if non_circular_io
+            % modern analysis of non circular components that are close
+            grpnm = [parent '/phase' num2str(phase_id) '/odf1/noncircular'];
+            attr = io_attributes();
+            attr.add('NX_class', 'NXprocess');
+            ret = h5w.nexus_write_group(grpnm, attr);
+            dsnm = [grpnm '/location'];
+            [ori_nc, vol_nc] = calcComponents(odf);
+            e1_e2_e3 = zeros(3, length(ori_nc));
+            e1_e2_e3(1, :) = ori_nc(:).phi1 / degree;
+            e1_e2_e3(2, :) = ori_nc(:).Phi / degree;
+            e1_e2_e3(3, :) = ori_nc(:).phi2 / degree;
+            attr = io_attributes();
+            attr.add('units', 'degree');
+            ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
+            dsnm = [grpnm '/volume_fraction'];
+            attr = io_attributes();
+            attr.add('comment1', 'NX_DIMENSIONLESS');
+            attr.add('comment2', 'Components may overlap with the search region defined by theta !');
+            attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
+            ret = h5w.nexus_write(dsnm, vol_nc, attr);  
+            clearvars ori_nc vol_nc e1_e2_e3;
+        end
     end
 
     phase_id = phase_id + 1;
