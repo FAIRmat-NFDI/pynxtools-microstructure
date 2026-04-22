@@ -110,12 +110,12 @@ mtex_pref = configure_mtex_preferences();
 mtex_plot_default = plottingConvention();
 
 % run the example
-mime_type = 'ang';
-ifpath_main = fullfile(outputdir, '063.0e9b32c0f2082b86ca5cc30fa683107e1d824dd6ecc7cb25e40210640b40b898.ang');
-ofpath = fullfile([ifpath_main '.mtex.h5']);
-%mime_type = 'ctf';
-%ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
+%mime_type = 'ang';
+%ifpath_main = fullfile(outputdir, '063.0e9b32c0f2082b86ca5cc30fa683107e1d824dd6ecc7cb25e40210640b40b898.ang');
 %ofpath = fullfile([ifpath_main '.mtex.h5']);
+mime_type = 'ctf';
+ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
+ofpath = fullfile([ifpath_main '.mtex.h5']);
 
 %mime_type = 'ctf';
 %ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
