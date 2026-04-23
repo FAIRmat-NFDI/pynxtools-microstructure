@@ -91,8 +91,8 @@ else
 end
 
 perform_io = 1;
-ebsd_io = 1;
-microstructure_io = 1;
+ebsd_io = 0;
+microstructure_io = 0;
 odf_io = 1;
 pf_io = 0;  % this next function has not been tested enough
 project_directory = pwd;
@@ -115,7 +115,7 @@ mtex_plot_default = plottingConvention();
 %ofpath = fullfile([ifpath_main '.mtex.h5']);
 mime_type = 'ctf';
 ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
-ofpath = fullfile([ifpath_main '.mtex.h5']);
+ofpath = fullfile([ifpath_main '.mtex.h5.REMOVE.h5']);
 
 %mime_type = 'ctf';
 %ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
@@ -167,7 +167,7 @@ elseif strcmp(reference_frame_convention, 'e2s')
         ebsd_raw = loadEBSD_crc(ifpath_supp, ifpath_main, ...
             'convertEuler2SpatialReferenceFrame', 'setting 2');
     else
-        ebsd_raw = EBSD.load(input, ...
+        ebsd_raw = EBSD.load(ifpath_main, ...
             'convertEuler2SpatialReferenceFrame');
     end
 else

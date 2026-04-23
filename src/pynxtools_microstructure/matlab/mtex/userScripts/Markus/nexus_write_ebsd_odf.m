@@ -13,8 +13,8 @@ odf_tic = tic;
 
 h5w = HdfFiveSeqHdl(fpath);
 
-kth_extrema_io = 0;
-non_circular_io = 0;
+kth_extrema_io = 1;
+non_circular_io = 1;
 
 phase_id = 0;
 for phase_idx = 1:1:length(ebsd_orig.mineralList)
