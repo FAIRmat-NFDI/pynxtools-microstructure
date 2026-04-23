@@ -91,8 +91,8 @@ else
 end
 
 perform_io = 1;
-ebsd_io = 0;
-microstructure_io = 0;
+ebsd_io = 1;
+microstructure_io = 1;
 odf_io = 1;
 pf_io = 0;  % this next function has not been tested enough
 project_directory = pwd;
@@ -115,7 +115,9 @@ mtex_plot_default = plottingConvention();
 %ofpath = fullfile([ifpath_main '.mtex.h5']);
 mime_type = 'ctf';
 ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
-ofpath = fullfile([ifpath_main '.mtex.h5.REMOVE.h5']);
+ofpath = fullfile([ifpath_main '.mtex.h5']);
+ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+
 
 %mime_type = 'ctf';
 %ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
@@ -212,8 +214,10 @@ if ebsd_io
     
     ebsd_sqr_ipf_hweb = nexus_squarify_ebsd( ...
         ebsd_raw, ...
-        'h5web_max_size', 2^11 - 1);
-    
+        'h5web_max_size', 2^14 - 1);
+    % was 2^11 - 1, 2^12 - 1 works fine with newer H5Web and h5grove
+    % maybe 2^14 - 1 working as well ?
+     
     status = nexus_write_ebsd_phase_ipf( ...
         ebsd_raw, ...
         ebsd_sqr_ipf_hweb, ...

@@ -277,7 +277,9 @@ classdef HdfFiveSeqHdl
                 end
                 r = 'MYHDF5_FAILED';
             end
-            ifo = io_info(val, 1);  % 0);  % 1); 
+            ifo = io_info(val, 1);
+            % val, 0); no compression
+            % val, 1); compression 
             % default is fastest compression (loss-less, gzip) as a
             % compromise between speed and dataset size reduction
             if ~ifo.is_valid
