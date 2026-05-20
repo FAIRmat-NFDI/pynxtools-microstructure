@@ -17,7 +17,8 @@ hide: toc
 
 ### How-to guides
 
-- [Configure `mtex`](how-tos/mtex.md)
+- [Connect to and config `mtex`](how-tos/mtex.md)
+- [Multithreaded grain reconstruction](how-tos/jcvoronoi.md)
 
 </div>
 <div markdown="block">

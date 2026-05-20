@@ -12,6 +12,7 @@ nav:
     - tutorial/contributing.md
   - How-tos:
     - how-tos/mtex.md
+    - how-tos/jcvoronoi.md
   - Learning:
     - learn/versioning.md
 
