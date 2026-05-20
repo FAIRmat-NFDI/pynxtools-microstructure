@@ -1,8 +1,6 @@
 # Multithreaded `calcGrains` with `mtex`
 
-The `calcGrains` method of `MTex` can use `jcvoronoi` to speed up the grain reconstruction process via multithreading and a faster library.
-Depending on the operating system this may require though that `jcvoronoi` needs to be compiled locally so that the its `mex` extension is
-overwritten. A how-to for Ubuntu 24.04. reads as follows:
+The `calcGrains` method of `MTex` can use [`jcvoronoi`](https://github.com/JCash/voronoi/blob/dev/src/jc_voronoi.h) to speed up the grain reconstruction process via multithreading and a faster library. Depending on the operating system this may require though that `jcvoronoi` needs to be compiled locally so that the its `mex` extension is overwritten. A how-to for Ubuntu 24.04. reads as follows:
 
 Assure to have installed `build-essentials` and a C/C++ compiler e.g. the GNU `gcc/g++ compiler`
 
