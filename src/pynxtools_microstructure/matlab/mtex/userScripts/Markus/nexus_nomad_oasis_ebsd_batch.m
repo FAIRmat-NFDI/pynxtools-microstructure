@@ -27,7 +27,7 @@ prefix = fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'use
 addpath(prefix);
 addpath(fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'extern', 'hdfutils'));
 
-compute_all_legends = 1;
+compute_all_legends = 0;
 if compute_all_legends
     nexus_preprocess_legends_for_all_combinations(prefix);
 else
@@ -104,34 +104,71 @@ outputdir = target_directory;
 addpath('data/EBSD');
 addpath(mtexdir);
 addpath(configdir);
-addpath(inputdir);
 addpath(outputdir);
 mtex_pref = configure_mtex_preferences();
 mtex_plot_default = plottingConvention();
 ebsd_mime_types_to_use_mtex = {'.crc', '.ang', '.ctf', '.osc'};
 
 %% loop over projects
-for project = 186:186
+% cnt = 0;
+for project = 1:836
     project_id = sprintf('%03d', project);
     pattern = fullfile(source_directory, [project_id, '.*']);
     files = dir(pattern);
+    logpath = fullfile(target_directory, [project_id '.log']);
+    if exist("logpath", 'file')
+        delete(logpath);
+    end
+    diary(logpath)
+    diary on
     
-    file_paths = {};
     for f = 1:length(files)
         [~, file_name, mime_type] = fileparts(files(f).name);
         if ismember(lower(mime_type), ebsd_mime_types_to_use_mtex)
             file_path = fullfile(files(f).folder, files(f).name);
 
-            clearvars -except configdir inputdir ipf_lgd_mtx_dct ipf_lgd_mtx_pg_map ...
-            ipf_lgd_tsl_dct ipf_lgd_tsl_pg_map mtex_plot_default mtex_pref ...
-            mtexdir outputdir point_groups project_directory target_directory ...
-            perform_io case_id ebsd_mime_types_to_use_mtex mime_type_idx ...
-            mime_type cfg_tbl row_idx_s row_idx;
+            clearvars -except ...
+                compute_all_legends ...
+                configdir ...
+                ebsd_io ...
+                ebsd_mime_types_to_use_mtex ...
+                f ...
+                file_name ...
+                file_path ...
+                files ...
+                flip_y ...
+                ipf_lgd_mtx_dct ...
+                ipf_lgd_tsl_dct ...
+                ipf_lgd_mtx_pg_map ...
+                ipf_lgd_tsl_pg_map ...
+                microstructure_io ...
+                mime_type ...
+                mtex_plot_default ...
+                mtex_pref ...
+                mtexdir ...
+                odf_io ...
+                outputdir ...
+                pattern ...
+                perform_io ...
+                pf_io ...
+                prefix ...
+                project ...
+                project_directory ...
+                project_id ...
+                source_directory ...
+                target_directory ...
+                logpath;
+                % cnt;
 
             % TODO configuration table
+            % if ~strcmp(files(f).name, '186.f367a28f8b3ad6df24067e22c884dd31f7ff62cb895379a1f18ac7fb031354a3.ctf')
+            %    continue
+            % end
             
+            ifpath = fullfile(source_directory, files(f).name);
             ofpath = fullfile(target_directory, [file_name, mime_type, '.mtex.h5']);
             dumppath = fullfile(target_directory, [file_name, mime_type, '.mat']);
+            disp([project_id, ': ', ifpath]);
             disp([project_id, ': ', ofpath]);
 
             % check ctf header line of 'Channel Text File' to spot problems
@@ -144,25 +181,40 @@ for project = 186:186
             end
     
             gtic = tic;
-            load_tic = tic;
+
+            try
+                load_tic = tic;
+                % reference_frame_convention = 's2e';
+                % disp(['reference_frame_convention: ' reference_frame_convention]);
+                % assuming just setting 2 is a very strong if not a wrong assumption
+                if strcmp(mime_type, '.crc')  % TODO modified crc/cpr loader
+                    ebsd_raw = loadEBSD_crc(ifpath, 'setting', 2);
+                elseif strcmp(mime_type, '.ang')             
+                    ebsd_raw = loadEBSD_ang(ifpath, 'setting', 2);
+                elseif strcmp(mime_type, '.osc')
+                    ebsd_raw = loadEBSD_osc(ifpath);
+                elseif strcmp(mime_type, '.ctf')
+                    ebsd_raw = loadEBSD_ctf(ifpath);
+                else
+                    continue;
+                end
+
+                if ~exist('ebsd_raw', 'var')
+                    % avoid writing mtex.h5 files for unimportable data
+                    continue;
+                end
+            catch exception
+                disp([project_id, ': exception ', exception.message]);
+                continue;
+            end
+            
             nexus_write_init(ofpath, perform_io);
             nexus_write_mtex_preferences( ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io, ...
-                    mtexdir);
-    
-            % reference_frame_convention = 's2e';
-            % disp(['reference_frame_convention: ' reference_frame_convention]);
-            % assuming just setting 2 is a very strong if not a wrong assumption
-            if strcmp(mime_type, 'crc')  % TODO modified crc/cpr loader
-                ebsd_raw = loadEBSD_crc(ifpath_supp, ifpath_main, ...
-                    'convertSpatial2EulerReferenceFrame', 'setting 2');
-            else
-                ebsd_raw = EBSD.load(ifpath_main, ...
-                    'convertSpatial2EulerReferenceFrame', 'setting 2');
-            end
-    
+                ofpath, ...
+                '/entry1/roi1/ebsd/indexing', ...
+                perform_io, ...
+                mtexdir);
+            
             h5w = HdfFiveSeqHdl(ofpath);
             dsnm = '/entry1/profiling/load_elapsed_time';
             load_wall_clock = toc(load_tic);
@@ -261,6 +313,12 @@ for project = 186:186
             disp([project_id, ' processed, writing Matlab restart file']);
 
             save(dumppath,'-v7.3');
+
+            % cnt = cnt + 1;
+            % if cnt > 2
+            %     break;
+            % end
         end
     end
+    diary off;
 end
