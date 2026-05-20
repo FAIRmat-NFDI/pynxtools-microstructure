@@ -18,7 +18,7 @@ ret = h5w.nexus_write_group(grpnm, attr);
 
 grpnm = '/entry1/roi1';
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXroi_process');
 ret = h5w.nexus_write_group(grpnm, attr);
 
 grpnm = '/entry1/roi1/ebsd';

@@ -16,9 +16,18 @@
 # limitations under the License.
 #
 
+import os
+from time import perf_counter_ns
 from typing import Any
 
+import numpy as np
+from pynxtools import logger
 from pynxtools.dataconverter.readers.base.reader import BaseReader
+from pynxtools_em.utils.default_config import SEPARATOR
+from pynxtools_em.utils.nx_atom_types import NxEmAtomTypesResolver
+from pynxtools_em.utils.nx_default_plots import NxEmDefaultPlotResolver
+
+from pynxtools_microstructure.parsers.nxs_mtex import NxEmNxsMtexParser
 
 
 class MICROSTRUCTUREReader(BaseReader):
@@ -35,6 +44,35 @@ class MICROSTRUCTUREReader(BaseReader):
         """
         Read method to prepare the template.
         """
+        logger.info(os.getcwd())
+        tic = perf_counter_ns()
+        template.clear()
+
+        entry_id = 1
+
+        parser = NxEmNxsMtexParser(file_paths[0], entry_id)
+        parser.parse(template)
+
+        nxplt = NxEmDefaultPlotResolver()
+        nxplt.priority_select(template, entry_id)
+
+        sample = NxEmAtomTypesResolver(entry_id)
+        sample.identify_atom_types(template)
+
+        debugging = False
+        if debugging:
+            logger.debug(
+                "Reporting state of template before passing to HDF5 writing..."
+            )
+            for keyword, value in sorted(template.items()):
+                logger.info(f"{keyword}{SEPARATOR}{type(value)}{SEPARATOR}{value}")
+
+        logger.debug("Forward instantiated template to the NXS writer...")
+        toc = perf_counter_ns()
+        trg = f"/ENTRY[entry{entry_id}]/profiling/template_filling_elapsed_time"
+        template[f"{trg}"] = np.float64((toc - tic) / 1.0e9)
+        template[f"{trg}/@units"] = "s"
+
         return template
 
 

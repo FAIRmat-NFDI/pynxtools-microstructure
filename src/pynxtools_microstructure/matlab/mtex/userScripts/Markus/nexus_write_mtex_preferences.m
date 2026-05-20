@@ -37,9 +37,24 @@ ret = h5w.nexus_write_group(grpnm, attr);
 dsnm = [grpnm '/program'];
 attr = io_attributes();
 % generated via ./scripts/mtex.sh
-mtex_version = strtrim(fileread([mtexdir '\src\pynxtools_microstructure\mtex-version.txt']));
+mtex_version = strtrim(fileread(fullfile(mtexdir, 'src', 'pynxtools_microstructure', 'mtex-version.txt')));
 attr.add('version', mtex_version);
 ret = h5w.nexus_write(dsnm, 'MTex', attr);
+
+grpnm = [parent '/mtex/program3']; % Matlab-internal HDF5
+attr = io_attributes();
+attr.add('NX_class', 'NXprogram');
+ret = h5w.nexus_write_group(grpnm, attr);
+
+dsnm = [grpnm '/program'];
+attr = io_attributes();
+[major, minor, revision] = H5.get_libversion();
+hfive_version = [num2str(major) '.' num2str(minor) '.' num2str(revision)];
+clearvars major minor revision;
+attr.add('version', hfive_version);
+ret = h5w.nexus_write(dsnm, 'HDF5', attr);
+
+
 %% conventions
 grpnm = [parent '/mtex/conventions'];
 attr = io_attributes();
@@ -61,7 +76,7 @@ ret = h5w.nexus_write_group(grpnm, attr);
 % ret = h5w.nexus_write(dsnm, mtex_pref.bAxisDirection, attr);
 dsnm = [grpnm '/euler_angle'];
 if strcmp(mtex_pref.EulerAngleConvention, 'Bunge')
-    ret = h5w.nexus_write(dsnm, mtex_pref.EulerAngleConvention, attr);
+    ret = h5w.nexus_write(dsnm, 'bunge', attr);
 else
     ret = h5w.nexus_write(dsnm, 'undefined', attr);
 end
@@ -127,31 +142,15 @@ attr.add('NX_class', 'NXcollection');
 ret = h5w.nexus_write_group(grpnm, attr);
 attr = io_attributes();
 dsnm = [grpnm '/mosek'];
-if mtex_pref.mosek
-    ret = h5w.nexus_write(dsnm, uint8(1), attr);
-else
-    ret = h5w.nexus_write(dsnm, uint8(0), attr);
-end
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.mosek), attr);
 dsnm = [grpnm '/generating_help_mode'];
-ret = h5w.nexus_write(dsnm, mtex_pref.generatingHelpMode, attr);
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.generatingHelpMode), attr);
 dsnm = [grpnm '/methods_advise'];
-if mtex_pref.mtexMethodsAdvise
-    ret = h5w.nexus_write(dsnm, uint8(1), attr);
-else
-    ret = h5w.nexus_write(dsnm, uint8(0), attr);
-end
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.mtexMethodsAdvise), attr);
 dsnm = [grpnm '/stop_on_symmetry_mismatch'];
-if mtex_pref.stopOnSymmetryMissmatch
-    ret = h5w.nexus_write(dsnm, uint8(1), attr);
-else
-    ret = h5w.nexus_write(dsnm, uint8(0), attr);
-end
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.stopOnSymmetryMissmatch), attr);
 dsnm = [grpnm '/inside_poly'];
-if mtex_pref.insidepoly
-    ret = h5w.nexus_write(dsnm, uint8(1), attr);
-else
-    ret = h5w.nexus_write(dsnm, uint8(0), attr);
-end
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.insidepoly), attr);
 dsnm = [grpnm '/text_interpreter'];
 ret = h5w.nexus_write(dsnm, mtex_pref.textInterpreter, attr);
 dsnm = [grpnm '/voronoi_method'];
@@ -179,7 +178,7 @@ attr.add('NX_class', 'NXcollection');
 ret = h5w.nexus_write_group(grpnm, attr);
 attr = io_attributes();
 dsnm = [grpnm '/memory'];
-attr.add('unit', 'MiB');
+attr.add('units', 'MiB');
 ret = h5w.nexus_write(dsnm, double(mtex_pref.memory), attr);
 % attr = io_attributes();
 % dsnm = [grpnm '/open_gl_bug'];
@@ -190,11 +189,7 @@ ret = h5w.nexus_write(dsnm, double(mtex_pref.memory), attr);
 % end
 attr = io_attributes();
 dsnm = [grpnm '/save_to_file'];
-if mtex_pref.SaveToFile
-    ret = h5w.nexus_write(dsnm, uint8(1), attr);
-else
-    ret = h5w.nexus_write(dsnm, uint8(0), attr);
-end
+ret = h5w.nexus_write(dsnm, logical(mtex_pref.SaveToFile), attr);
 
 %% paths
 % switch off these annotations as I do not want share my local system configuration

@@ -23,20 +23,19 @@ clear; clc;
 %% load preprocessed color maps for all point groups
 % when using pynxtools-microstructure plugin the home directory
 % is SOMEPREFIX/pynxtools_microstructure
-prefix = [pwd '\src\pynxtools_microstructure\matlab\mtex\userScripts\Markus\'];
+prefix = fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'userScripts', 'Markus');
 addpath(prefix);
-
-% adding file writer
-addpath([pwd '\src\pynxtools_microstructure\matlab\mtex\extern\hdfutils\']);
+addpath(fullfile(pwd, 'src', 'pynxtools_microstructure', 'matlab', 'mtex', 'extern', 'hdfutils'));
 
 compute_all_legends = 0;
 if compute_all_legends
     nexus_preprocess_legends_for_all_combinations(prefix);
 else
-    load([prefix 'ipf_lgds.mat']);
+    load(fullfile(prefix, 'ipf_lgds.mat'));
 end
 
 %% define custom mappings for point group whose name differs between TSL/MTex
+flip_y = 0;
 ipf_lgd_tsl_pg_map = containers.Map();
 ipf_lgd_mtx_pg_map = containers.Map();
 % https://orix.readthedocs.io/en/latest/tutorials/inverse_pole_figures.html
@@ -59,41 +58,50 @@ ipf_lgd_mtx_pg_map('-3m1') = '-3m';
 % like the IPF RGB colored OIM maps, so far this was only possible
 % when setting y-flip on by default
 disp('Mapping MTex point group names to closest TSL: OK');
-k = ipf_lgd_tsl_dct.keys;
-v = ipf_lgd_tsl_dct.values;
-for pg = 1:1:length(point_groups)
-    tmp = ipf_lgd_tsl_dct(k{pg});
-    ny = size(tmp, 3);
-    flp = uint8(zeros(size(tmp)));
-    for y = 1:1:ny
-        flp(:, :, ny - y + 1) = tmp(:, :, y);
+if flip_y  % for some versions of NOMAD and H5Web the RGB widget does not
+    % have the flipy button, so we need to flip eventually hard the data
+    % that is a workaround
+    k = ipf_lgd_tsl_dct.keys;
+    v = ipf_lgd_tsl_dct.values;
+    for pg = 1:1:length(point_groups)
+        tmp = ipf_lgd_tsl_dct(k{pg});
+        ny = size(tmp, 3);
+        flp = uint8(zeros(size(tmp)));
+        for y = 1:1:ny
+            flp(:, :, ny - y + 1) = tmp(:, :, y);
+        end
+        ipf_lgd_tsl_dct(k{pg}) = flp;
     end
-    ipf_lgd_tsl_dct(k{pg}) = flp;
-end
-clearvars k v;
-k = ipf_lgd_mtx_dct.keys;
-v = ipf_lgd_mtx_dct.values;
-for pg = 1:1:length(point_groups)
-    tmp = ipf_lgd_mtx_dct(k{pg});
-    ny = size(tmp, 3);
-    flp = uint8(zeros(size(tmp)));
-    for y = 1:1:ny
-        flp(:, :, ny - y + 1) = tmp(:, :, y);
+    clearvars k v;
+    k = ipf_lgd_mtx_dct.keys;
+    v = ipf_lgd_mtx_dct.values;
+    for pg = 1:1:length(point_groups)
+        tmp = ipf_lgd_mtx_dct(k{pg});
+        ny = size(tmp, 3);
+        flp = uint8(zeros(size(tmp)));
+        for y = 1:1:ny
+            flp(:, :, ny - y + 1) = tmp(:, :, y);
+        end
+        ipf_lgd_mtx_dct(k{pg}) = flp;
     end
-    ipf_lgd_mtx_dct(k{pg}) = flp;
+    clearvars k v pg tmp ny flp y;
+    disp('Precomputed IPF legends for all point groups flipped along y: OK');
+else
+    disp('Use precomputed IPF legends for all point groups unflipped: OK');
 end
-clearvars k v pg tmp ny flp y;
-disp('Precomputed IPF legends for all point groups flipped along y: OK');
 
 perform_io = 1;
+ebsd_io = 1;
+microstructure_io = 1;
+odf_io = 1;
+pf_io = 0;  % this next function has not been tested enough
 project_directory = pwd;
-target_directory = [pwd '\examples\'];
-mtexdir = [pwd];
-configdir = [project_directory];
-inputdir = [pwd '\src\pynxtools_microstructure\mtex\data\EBSD\'];  % 2d
-% inputdir = [pwd '\src\pynxtools_microstructure\mtex\data\EBSD3\'];  % 3d
+target_directory = fullfile(pwd, 'examples');
+mtexdir = fullfile(pwd);
+configdir = fullfile(project_directory);
+inputdir = fullfile(pwd, 'src', 'pynxtools_microstructure', 'mtex', 'data', 'EBSD');  % 2d
+% inputdir = fullfile(pwd, 'src', 'pynxtools_microstructure', 'mtex', 'data', 'EBSD3');  % 3d
 outputdir = target_directory;
-addpath('data/EBSD');
 addpath(mtexdir);
 addpath(configdir);
 addpath(inputdir);
@@ -102,16 +110,22 @@ mtex_pref = configure_mtex_preferences();
 mtex_plot_default = plottingConvention();
 
 % run the example
+%mime_type = 'ang';
+%ifpath_main = fullfile(outputdir, '063.0e9b32c0f2082b86ca5cc30fa683107e1d824dd6ecc7cb25e40210640b40b898.ang');
+%ofpath = fullfile([ifpath_main '.mtex.h5']);
 mime_type = 'ctf';
-ifpath_main = [inputdir 'Forsterite.ctf'];
-ifpath_supp = '';
+ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
+ofpath = fullfile([ifpath_main '.mtex.h5']);
+ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
 
-token = replace( ...
-    ifpath_main, ...
-    inputdir, ...
-    ''); 
-ofpath = [outputdir token '.mtex.h5'];
-clearvars token;
+
+%mime_type = 'ctf';
+%ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
+%token = replace(ifpath_main, inputdir, ''); 
+%ofpath = fullfile(outputdir, [token '.mtex.h5']);
+%clearvars token;
+
+ifpath_supp = '';
 disp(['ifpath_main: ' ifpath_main]);
 disp(['ifpath_supp: ' ifpath_supp]);
 disp(['ofpath: ' ofpath]);
@@ -127,6 +141,8 @@ if strcmp(mime_type, 'ctf')
     end
 end
 
+%%
+
 gtic = tic;
 load_tic = tic;
 status = nexus_write_init(ofpath, perform_io);
@@ -135,6 +151,7 @@ status = nexus_write_mtex_preferences( ...
         '/entry1/roi1/ebsd/indexing', ...
         perform_io, ...
         mtexdir);
+return
 
 reference_frame_convention = 's2e';
 disp(['reference_frame_convention: ' reference_frame_convention]);
@@ -152,7 +169,7 @@ elseif strcmp(reference_frame_convention, 'e2s')
         ebsd_raw = loadEBSD_crc(ifpath_supp, ifpath_main, ...
             'convertEuler2SpatialReferenceFrame', 'setting 2');
     else
-        ebsd_raw = EBSD.load(input, ...
+        ebsd_raw = EBSD.load(ifpath_main, ...
             'convertEuler2SpatialReferenceFrame');
     end
 else
@@ -170,72 +187,80 @@ h5w.nexus_write(dsnm, double(load_wall_clock), attr);
 % plot(ebsd_raw);
 ebsd_tic = tic;
 
-status = nexus_write_ebsd_phase( ...
-    ebsd_raw, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io);
+if ebsd_io    
+    status = nexus_write_ebsd_phase( ...
+        ebsd_raw, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+    
+    status = nexus_write_ebsd_data( ...
+        ebsd_raw, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+    
+    % prepare a default plot on a square grid but represented
+    % as an implicit array instead of an EBSDsquare object
+    ebsd_sqr_roi_hweb = nexus_squarify_ebsd( ...
+        ebsd_raw, ...
+        'h5web_max_size', 2^14 - 1);
+    
+    status = nexus_write_ebsd_overview( ...
+        ebsd_sqr_roi_hweb, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+    
+    ebsd_sqr_ipf_hweb = nexus_squarify_ebsd( ...
+        ebsd_raw, ...
+        'h5web_max_size', 2^14 - 1);
+    % was 2^11 - 1, 2^12 - 1 works fine with newer H5Web and h5grove
+    % maybe 2^14 - 1 working as well ?
+     
+    status = nexus_write_ebsd_phase_ipf( ...
+        ebsd_raw, ...
+        ebsd_sqr_ipf_hweb, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io, ...
+        ipf_lgd_tsl_dct, ...
+        ipf_lgd_mtx_dct, ...
+        ipf_lgd_tsl_pg_map, ...
+        ipf_lgd_mtx_pg_map);
+    
+    h5w = HdfFiveSeqHdl(ofpath);
+    dsnm = '/entry1/profiling/ebsd_elapsed_time';
+    ebsd_wall_clock = toc(ebsd_tic);
+    attr = io_attributes();
+    attr.add('units', 's');
+    h5w.nexus_write(dsnm, double(ebsd_wall_clock), attr);
+end
 
-status = nexus_write_ebsd_data( ...
-    ebsd_raw, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io);
+if microstructure_io
+    status = nexus_write_ebsd_microstructure( ...
+        ebsd_raw, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+end
 
-% prepare a default plot on a square grid but represented
-% as an implicit array instead of an EBSDsquare object
-ebsd_sqr_roi_hweb = nexus_squarify_ebsd( ...
-    ebsd_raw, ...
-    'h5web_max_size', 2^14 - 1);
+if odf_io
+    status = nexus_write_ebsd_odf( ...
+        ebsd_raw, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+end
 
-status = nexus_write_ebsd_overview( ...
-    ebsd_sqr_roi_hweb, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io);
-
-ebsd_sqr_ipf_hweb = nexus_squarify_ebsd( ...
-    ebsd_raw, ...
-    'h5web_max_size', 2^11 - 1);
-
-status = nexus_write_ebsd_phase_ipf( ...
-    ebsd_raw, ...
-    ebsd_sqr_ipf_hweb, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io, ...
-    ipf_lgd_tsl_dct, ...
-    ipf_lgd_mtx_dct, ...
-    ipf_lgd_tsl_pg_map, ...
-    ipf_lgd_mtx_pg_map);
-
-h5w = HdfFiveSeqHdl(ofpath);
-dsnm = ['/entry1/profiling/ebsd_elapsed_time'];
-ebsd_wall_clock = toc(ebsd_tic);
-attr = io_attributes();
-attr.add('units', 's');
-h5w.nexus_write(dsnm, double(ebsd_wall_clock), attr);
-
-status = nexus_write_ebsd_microstructure( ...
-    ebsd_raw, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io);
-
-status = nexus_write_ebsd_odf( ...
-    ebsd_raw, ...
-    ofpath, ...
-    '/entry1/roi1/ebsd/indexing', ...
-    perform_io);
-
-% this next function has not been tested enough
-% we do not need it also because ODF gets reported 
-% status = nexus_write_ebsd_pf( ...
-%       ebsd_raw, ...
-%       ofpath, ...
-%       '/entry1/roi1/ebsd/indexing', ...
-%       perform_io);
-% end
+if pf_io
+    % this next function has not been tested enough
+    status = nexus_write_ebsd_pf( ...
+        ebsd_raw, ...
+        ofpath, ...
+        '/entry1/roi1/ebsd/indexing', ...
+        perform_io);
+end
 
 h5w = HdfFiveSeqHdl(ofpath);
 host_info = nexus_nomad_get_host_info();

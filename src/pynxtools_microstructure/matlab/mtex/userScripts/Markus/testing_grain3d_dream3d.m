@@ -44,11 +44,11 @@ ret = h5w.nexus_write(dsnm, double(grains.allV), attr);
 % TODO does F = grains.boundary.F yield triangles in winding order?
 grpnm = [parent '/crystals'];
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXmicrostructure_feature');
 ret = h5w.nexus_write_group(grpnm, attr);
 grpnm = [parent '/interfaces'];
 attr = io_attributes();
-attr.add('NX_class', 'NXobject');
+attr.add('NX_class', 'NXmicrostructure_feature');
 ret = h5w.nexus_write_group(grpnm, attr);
 
 grpnm = [parent '/crystals'];

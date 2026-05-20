@@ -67,7 +67,6 @@ classdef HdfFiveSeqHdl
         end
 %% nexus_write_group
         function r = nexus_write_group(obj, grpnm, attrs)
-            % disp(['grp: ' grpnm]);
             obj.fileid = H5F.open(obj.h5resultsfn, 'H5F_ACC_RDWR', 'H5P_DEFAULT');
             if H5I.is_valid(obj.fileid)
                 clean_abs_path = clean_h5_path(grpnm);
@@ -77,11 +76,11 @@ classdef HdfFiveSeqHdl
                     disp('Checking a chain of hopefully existing links...');
                 end
                 curr_loc_id = obj.fileid;
-                % curr_group = '';
-                % https://gist.github.com/jzrake/3025642
                 for i = 1:length(level_by_level)
-                    curr_group = level_by_level{i}; % ['/', level_by_level{i}];
+                    curr_group = level_by_level{i};
                     if obj.verbose
+                        disp(['Writing attributes at level: ', curr_group]);
+                        disp(['i = ', num2str(i), ', total = ', num2str(length(level_by_level))]);
                         disp(['Currently visiting __', curr_group, '__']);
                     end
                     if H5L.exists(curr_loc_id, curr_group, 'H5P_DEFAULT')
@@ -110,13 +109,12 @@ classdef HdfFiveSeqHdl
                             disp([curr_group, ' --> created']);
                         end
                         if H5I.is_valid(next_loc_id)
+                            if i == length(level_by_level)
+                                obj.nexus_write_attributes( ...
+                                    next_loc_id, attrs);
+                            end
                             if curr_loc_id ~= obj.fileid
-                                % check if we have arrived at the leaf, write attributes then
                                 if H5I.is_valid(curr_loc_id)
-                                    if i == length(level_by_level)
-                                        obj.nexus_write_attributes( ...
-                                            next_loc_id, attrs);
-                                    end
                                     H5G.close(curr_loc_id);
                                 end
                             end
@@ -279,7 +277,9 @@ classdef HdfFiveSeqHdl
                 end
                 r = 'MYHDF5_FAILED';
             end
-            ifo = io_info(val, 1);  % 0);  % 1); 
+            ifo = io_info(val, 1);
+            % val, 0); no compression
+            % val, 1); compression 
             % default is fastest compression (loss-less, gzip) as a
             % compromise between speed and dataset size reduction
             if ~ifo.is_valid
@@ -363,27 +363,36 @@ classdef HdfFiveSeqHdl
                     % Be careful and mind the documentation
                     % The HDF5 library uses C-style ordering for multidimensional arrays, while MATLAB uses FORTRAN-style ordering.
                     % The dims and maxdims parameters assume C-style ordering
-                    rank = 1;
-                    dims = [1]; 
-                    maxdims = [1];
-                    if isa(val, "char")
+                    % rank = 1;
+                    % dims = [1]; 
+                    % maxdims = [1];
+                    if isa(val, "char") || isstring(val)
                         obj.dspcid = H5S.create('H5S_SCALAR');
                     else
-                        obj.dspcid = H5S.create_simple(rank, dims, maxdims);
+                        if isscalar(val)
+                            obj.dspcid = H5S.create('H5S_SCALAR');
+                        else
+                            obj.dspcid = H5S.create_simple(1, 1, []);
+                        end
                     end
                     if H5I.is_valid(obj.dspcid)
                         if obj.verbose
                             disp('H5I.is_valid(obj.dspcid)');
                         end
-                        obj.dsetid = H5D.create(obj.fileid, clean_abs_path, dtyp, ...
-                            obj.dspcid, 'H5P_DEFAULT', 'H5P_DEFAULT', 'H5P_DEFAULT');
+                        %if ~islogical(val)
+                        obj.dsetid = H5D.create( ...
+                            obj.fileid, clean_abs_path, dtyp, ...
+                            obj.dspcid, 'H5P_DEFAULT', ...
+                            'H5P_DEFAULT', 'H5P_DEFAULT');
+                        %else
+                        %    obj.dsetid = H5D.create(fid,'/bool',type,space,'H5P_DEFAULT');
+                        %end
+
                         if H5I.is_valid(obj.dsetid)
-                            % maybe this branch is unnecessary ##MKas the
-                            % branch code is the same in both cases
                             if obj.verbose
                                 disp('H5I.is_valid(obj.dsetid)');
                             end
-                            H5D.write(obj.dsetid, dtyp, 'H5S_ALL', obj.dspcid, 'H5P_DEFAULT', val);  % before 'H5S_ALL'
+                            H5D.write(obj.dsetid, dtyp, 'H5S_ALL', obj.dspcid, 'H5P_DEFAULT', val);
                             if obj.verbose
                                 disp(['Writing ', clean_abs_path, ' scalar success']);
                             end
@@ -509,7 +518,7 @@ classdef HdfFiveSeqHdl
                            obj.nexus_write_attributes(obj.dsetid, attrs);
                         end
                     end
-                % ##MK::implemement 3d
+                % ##MK::implement 3d
                 end
             end
             if obj.verbose
