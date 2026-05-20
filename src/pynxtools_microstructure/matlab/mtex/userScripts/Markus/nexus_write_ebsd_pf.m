@@ -14,7 +14,7 @@ h5w = HdfFiveSeqHdl(fpath);
 grpnm = [parent '/pf1'];
 attr = io_attributes();
 attr.add('NX_class', 'NXmicrostructure_pf');
-ret = h5w.nexus_write_group(grpnm, attr);
+h5w.nexus_write_group(grpnm, attr);
 
 pf_id = 1;
 phase_id = 0;
@@ -42,38 +42,38 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             attr.add('NX_class', 'NXdata');
             attr.add('comment1', 'Pole figure recomputed from equally-named odf')
             attr.add('comment2', 'PF looks as for MTex xEast, zIntoPlane but X and Y each have different sign?');
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
             grpnm = [parent '/pf1/pf' num2str(pf_id) '/configuration'];
             attr = io_attributes();
             attr.add('NX_class', 'NXparameters');
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
 
             phase_name = ebsd_orig.mineralList{phase_idx};
             specimen_symmetry_point_group = 'triclinic';
-            ss = specimenSymmetry(specimen_symmetry_point_group);
+            specimenSymmetry(specimen_symmetry_point_group);
 
             dsnm = [grpnm '/phase_name'];
             attr = io_attributes();
-            ret = h5w.nexus_write(dsnm, phase_name, attr);
+            h5w.nexus_write(dsnm, phase_name, attr);
             dsnm = [grpnm '/phase_id'];
-            ret = h5w.nexus_write(dsnm, uint32(phase_id), attr);
+            h5w.nexus_write(dsnm, uint32(phase_id), attr);
             dsnm = [grpnm '/crystal_symmetry_point_group'];
-            ret = h5w.nexus_write(dsnm, cs.pointGroup, attr);
+            h5w.nexus_write(dsnm, cs.pointGroup, attr);
             dsnm = [grpnm '/specimen_symmetry_point_group'];
-            ret = h5w.nexus_write(dsnm, specimen_symmetry_point_group, attr);
+            h5w.nexus_write(dsnm, specimen_symmetry_point_group, attr);
             kernel_hw = 10.*degree;
             kernel_reso = 2.5*degree;
             dsnm = [grpnm '/halfwidth'];
             attr = io_attributes();
             attr.add('units', 'degree');
-            ret = h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
+            h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
             dsnm = [grpnm '/resolution'];
             attr = io_attributes();
             attr.add('units', 'degree');
-            ret = h5w.nexus_write(dsnm, double(kernel_reso / pi * 180.), attr);
+            h5w.nexus_write(dsnm, double(kernel_reso / pi * 180.), attr);
             dsnm = [grpnm '/miller_indices'];
             attr = io_attributes();
-            ret = h5w.nexus_write(dsnm, ...
+            h5w.nexus_write(dsnm, ...
                 ['{' num2str(miller_set(k).h) ...
                 ', ' num2str(miller_set(k).k) ...
                 ', ' num2str(miller_set(k).l) '}'], attr);
@@ -94,8 +94,8 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             % thus opposite approach for H5Web, sample a square and set
             % PF intensity for points outside unit circle to NaN
             % [-1.:n_resolution:+1.]^2
-            X = [+1.:-n_resolution:-1.];
-            Y = [+1.:-n_resolution:-1.];
+            X = +1.:-n_resolution:-1.;
+            Y = +1.:-n_resolution:-1.;
             XYZ = zeros(3, length(X) * length(Y));
             for j = 1:1:length(Y)
                 for i = 1:1:length(X)
@@ -135,27 +135,27 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             attr.add('axes', {'axis_y', 'axis_x'});
             attr.add('axis_x_indices', uint32(0));
             attr.add('axis_y_indices', uint32(1));
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
 
             dsnm = [grpnm '/title'];
             attr = io_attributes();
-            ret = h5w.nexus_write(dsnm, ...
+            h5w.nexus_write(dsnm, ...
                 ['PF Miller ' miller_indices ' ' phase_name], attr);
 
             dsnm = [grpnm '/intensity'];
             attr = io_attributes();
             % ##MK::TODO single precision to reduce size for OASIS demo
-            ret = h5w.nexus_write(dsnm, single(interp_values), attr);
+            h5w.nexus_write(dsnm, single(interp_values), attr);
 
             dsnm = [grpnm '/axis_x'];
             attr = io_attributes();
-            attr.add('long_name', ['x']);
-            ret = h5w.nexus_write(dsnm, double(X), attr);
+            attr.add('long_name', 'x');
+            h5w.nexus_write(dsnm, double(X), attr);
 
             dsnm = [grpnm '/axis_y'];
             attr = io_attributes();
-            attr.add('long_name', ['y']);
-            ret = h5w.nexus_write(dsnm, double(Y), attr);
+            attr.add('long_name', 'y');
+            h5w.nexus_write(dsnm, double(Y), attr);
 
             pf_id = pf_id + 1;
         end
@@ -163,5 +163,5 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
     phase_id = phase_id + 1;
 end
 disp('NeXus/HDF5 exporting of pole figures was successful');
-status = logical(1);
+status = true;
 end

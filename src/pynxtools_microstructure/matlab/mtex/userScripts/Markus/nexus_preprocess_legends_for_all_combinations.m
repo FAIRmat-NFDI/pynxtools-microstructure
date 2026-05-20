@@ -37,7 +37,7 @@ for cs = 1:1:length(point_groups)
         % TODO::this must not be y-flipped !
         for x = 1:sz(2)
             for y = 1:sz(1)
-                idx = y + (x - 1) * sz(1);
+                % idx = y + (x - 1) * sz(1);
                 low_level(:, x, y) = im(y, x, :);
             end
         end
@@ -62,7 +62,7 @@ for cs = 1:1:length(point_groups)
         % TODO::this must not be y-flipped !
         for x = 1:sz(2)
             for y = 1:sz(1)
-                idx = y + (x - 1) * sz(1);
+                % idx = y + (x - 1) * sz(1);
                 low_level(:, x, y) = im(y, x, :);
             end
         end
@@ -75,4 +75,4 @@ save(fullfile(prefix, 'ipf_lgds.mat'));
 disp('IPF color legends preprocessed for all combinations.');
 disp('Results are stored in');
 disp(fullfile(prefix, 'ipf_lgds.mat'));
-status = logical(1);
+status = true;

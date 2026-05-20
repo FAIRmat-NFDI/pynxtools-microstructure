@@ -1,8 +1,7 @@
-function out = nexus_squarify_map(ebsd_orig, varargin)
+function out = nexus_squarify_ebsd(ebsd_orig, varargin)
 
 nlimit = get_option(varargin,'h5web_max_size');
 
-scan_unit = 'n/a';
 if strcmp(ebsd_orig.scanUnit, 'um')
     scan_unit = 'µm'; 
 else

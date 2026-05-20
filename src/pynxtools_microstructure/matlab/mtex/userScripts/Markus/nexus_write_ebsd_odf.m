@@ -29,17 +29,15 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
     disp(['nexus_write_ebsd_odf ' num2str(phase_idx) '/' num2str(length(ebsd_orig.mineralList)) ' ' ebsd_orig.mineralList{phase_idx} ' phase_id ' num2str(phase_id) ' n_count ' num2str(n_count)]);
 
     if ~strcmp(ebsd_orig.mineralList{phase_idx}, 'notIndexed') & n_count > 0
-        phase_name = ebsd_orig.mineralList{phase_idx};
-        
         grpnm = [parent '/phase' num2str(phase_id) '/odf1'];
         attr = io_attributes();
         attr.add('NX_class', 'NXmicrostructure_odf');
-        ret = h5w.nexus_write_group(grpnm, attr);
+        h5w.nexus_write_group(grpnm, attr);
         
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/configuration'];
         attr = io_attributes();
         attr.add('NX_class', 'NXparameters');
-        ret = h5w.nexus_write_group(grpnm, attr);
+        h5w.nexus_write_group(grpnm, attr);
 
         phase_name = ebsd_orig.mineralList{phase_idx};
         cs = ebsd_orig.CSList{phase_idx};
@@ -51,21 +49,21 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
 
         dsnm = [grpnm '/crystal_symmetry_point_group'];
         attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, cs.pointGroup, attr);
+        h5w.nexus_write(dsnm, cs.pointGroup, attr);
         dsnm = [grpnm '/specimen_symmetry_point_group'];
         attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, specimen_symmetry_point_group, attr);
+        h5w.nexus_write(dsnm, specimen_symmetry_point_group, attr);
         dsnm = [grpnm '/kernel_name'];
         attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, 'de_la_vallee_poussin', attr);
+        h5w.nexus_write(dsnm, 'de_la_vallee_poussin', attr);
         dsnm = [grpnm '/kernel_halfwidth'];
         attr = io_attributes();
         attr.add('units', 'degree');
-        ret = h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
+        h5w.nexus_write(dsnm, double(kernel_hw / pi * 180.), attr);
         dsnm = [grpnm '/resolution'];
         attr = io_attributes();
         attr.add('units', 'degree');
-        ret = h5w.nexus_write(dsnm, double(odf_reso / pi * 180.), attr);
+        h5w.nexus_write(dsnm, double(odf_reso / pi * 180.), attr);
 
         % exemplar code for different types of ODFs
         odf = calcDensity(ebsd_orig(phase_name).orientations, ...
@@ -80,9 +78,9 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
         if isa(odf, 'SO3Grid')
             S3G = getClass(varargin,'SO3Grid');
             S3G = orientation(S3G);
-            d = Euler(S3G, odf);
+            % d = Euler(S3G, odf);
         else
-          [S3G,~,~,d] = regularSO3Grid(cs, ss, odf);
+          [S3G,~,~,~] = regularSO3Grid(cs, ss, odf);
         end
         clearvars specimen_symmetry_point_group;
 
@@ -121,7 +119,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
         naive_grid = eval(odf, here);
         clearvars i j k ijk e1 e2 e3;
         interp_values = double(reshape(naive_grid, [n_e1, n_e2, n_e3]));
-        clearvars naive_grid S3G d;
+        clearvars naive_grid S3G;
 
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/phi_two_plot'];
         attr = io_attributes();
@@ -131,10 +129,10 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
         attr.add('varphi_one_indices', uint32(0));
         attr.add('capital_phi_indices', uint32(1));
         attr.add('varphi_two_indices', uint32(2));
-        ret = h5w.nexus_write_group(grpnm, attr);
+        h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/title'];
         attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, ['ODF ' phase_name], attr);
+        h5w.nexus_write(dsnm, ['ODF ' phase_name], attr);
         dsnm = [grpnm '/intensity'];
         attr = io_attributes();
         attr.add('comment', 'odf intensity normalized to random odf');
@@ -144,37 +142,37 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
         % attr.add('SUBCLASS_VERSION', int64(15));
         % TODO with single precision only half as much space
         % TODO should be sufficient for EBSD database demonstrator
-        ret = h5w.nexus_write(dsnm, single(interp_values), attr);
+        h5w.nexus_write(dsnm, single(interp_values), attr);
 
         dsnm = [grpnm '/varphi_one'];
         attr = io_attributes();
         attr.add('units', 'degree');
-        attr.add('long_name', ['phi_1 (degree)']);
+        attr.add('long_name', 'phi_1 (degree)');
         e1 = double((0.5 + ((1:1:n_e1) - 1)) * n_resolution);
-        ret = h5w.nexus_write(dsnm, e1, attr);
+        h5w.nexus_write(dsnm, e1, attr);
         dsnm = [grpnm '/capital_phi'];
         attr = io_attributes();
         attr.add('units', 'degree');
-        attr.add('long_name', ['Phi (degree)']);
+        attr.add('long_name', 'Phi (degree)');
         e2 = double((0.5 + ((1:1:n_e2) - 1)) * n_resolution);
-        ret = h5w.nexus_write(dsnm, e2, attr);
+        h5w.nexus_write(dsnm, e2, attr);
         dsnm = [grpnm '/varphi_two'];
         attr = io_attributes();
         attr.add('units', 'degree');
-        attr.add('long_name', ['phi_2 (degree)']);
+        attr.add('long_name', 'phi_2 (degree)');
         e3 = double((0.5 + ((1:1:n_e3) - 1)) * n_resolution);
-        ret = h5w.nexus_write(dsnm, e3, attr);
+        h5w.nexus_write(dsnm, e3, attr);
         clearvars n_e1 n_e2 n_e3 interp_pts interp_values n_resolution;
 
         % ODF characteristics
         grpnm = [parent '/phase' num2str(phase_id) '/odf1/characteristics'];
         attr = io_attributes();
         attr.add('NX_class', 'NXprocess');
-        ret = h5w.nexus_write_group(grpnm, attr);
+        h5w.nexus_write_group(grpnm, attr);
         dsnm = [grpnm '/texture_index'];
         tindex = norm(odf)^2;
         attr = io_attributes();
-        ret = h5w.nexus_write(dsnm, double(tindex), attr);
+        h5w.nexus_write(dsnm, double(tindex), attr);
         clearvars tindex;
 
         if kth_extrema_io
@@ -186,7 +184,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             % dsnm = [grpnm '/entropy'];
             % entrpy = entropy(odf);
             % attr = io_attributes();        
-            % ret = h5w.nexus_write(dsnm, entrpy, attr);
+            % h5w.nexus_write(dsnm, entrpy, attr);
             % clearvars entrpy;
     
             % classical component analysis as used for often alloys can use
@@ -202,14 +200,14 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             grpnm = [parent '/phase' num2str(phase_id) '/odf1/kth_extrema'];
             attr = io_attributes();
             attr.add('NX_class', 'NXprocess');
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
             dsnm = [grpnm '/theta'];
             attr = io_attributes();
             attr.add('units', 'degree');
-            ret = h5w.nexus_write(dsnm, double(delta / pi * 180.), attr);
+            h5w.nexus_write(dsnm, double(delta / pi * 180.), attr);
             dsnm = [grpnm '/kth'];
             attr = io_attributes();
-            ret = h5w.nexus_write(dsnm, uint32(kth), attr);
+            h5w.nexus_write(dsnm, uint32(kth), attr);
             dsnm = [grpnm '/location'];
             [intensity, maxima] = max(odf, 'numLocal', kth);
             disp(maxima);
@@ -219,12 +217,12 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             e1_e2_e3(3, :) = maxima(:).phi2 / degree;
             attr = io_attributes();
             attr.add('units', 'degree');
-            ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
+            h5w.nexus_write(dsnm, e1_e2_e3, attr);
             clearvars e1_e2_e3;
             dsnm = [grpnm '/intensity'];
             attr = io_attributes();
             attr.add('comment', 'odf intensity normalized to random odf');
-            ret = h5w.nexus_write(dsnm, intensity, attr);
+            h5w.nexus_write(dsnm, intensity, attr);
             clearvars intensity;
             % classical volume fraction with classical disorientation threshold
             dsnm = [grpnm '/volume_fraction'];
@@ -239,7 +237,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             attr.add('comment1', 'NX_DIMENSIONLESS');
             attr.add('comment2', 'Components may overlap with the search region defined by theta !');
             attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
-            ret = h5w.nexus_write(dsnm, double(V), attr);
+            h5w.nexus_write(dsnm, double(V), attr);
             clearvars kth delta maxima V;
         end
 
@@ -248,7 +246,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             grpnm = [parent '/phase' num2str(phase_id) '/odf1/noncircular'];
             attr = io_attributes();
             attr.add('NX_class', 'NXprocess');
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
             dsnm = [grpnm '/location'];
             [ori_nc, vol_nc] = calcComponents(odf);
             e1_e2_e3 = zeros(3, length(ori_nc));
@@ -257,26 +255,26 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             e1_e2_e3(3, :) = ori_nc(:).phi2 / degree;
             attr = io_attributes();
             attr.add('units', 'degree');
-            ret = h5w.nexus_write(dsnm, e1_e2_e3, attr);
+            h5w.nexus_write(dsnm, e1_e2_e3, attr);
             dsnm = [grpnm '/volume_fraction'];
             attr = io_attributes();
             attr.add('comment1', 'NX_DIMENSIONLESS');
             attr.add('comment2', 'Components may overlap with the search region defined by theta !');
             attr.add('comment3', 'Therefore, volume fractions may not add up to 1. !');
-            ret = h5w.nexus_write(dsnm, vol_nc, attr);  
+            h5w.nexus_write(dsnm, vol_nc, attr);  
             clearvars ori_nc vol_nc e1_e2_e3;
         end
     end
 
     phase_id = phase_id + 1;
 end
-dsnm = ['/entry1/profiling/odf_elapsed_time'];
+dsnm = '/entry1/profiling/odf_elapsed_time';
 odf_wall_clock = toc(odf_tic);
 attr = io_attributes();
 attr.add('units', 's');
 h5w.nexus_write(dsnm, double(odf_wall_clock), attr);
 
 disp('NeXus/HDF5 exporting of ODF: OK');
-status = logical(1);
+status = true;
 
 end
