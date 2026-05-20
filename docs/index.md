@@ -17,10 +17,9 @@ hide: toc
 
 ### How-to guides
 
-How-to guides provide step-by-step instructions for a wide range of tasks, with the overarching topics:
+- [Configure `mtex`](how-tos/mtex.md)
 
 </div>
-
 <div markdown="block">
 
 ### Learn
@@ -33,7 +32,7 @@ How-to guides provide step-by-step instructions for a wide range of tasks, with 
 ### Reference
 
 </div>
-</div>
+</div markdown="block">
 
 <h2> Contact </h2>
 
