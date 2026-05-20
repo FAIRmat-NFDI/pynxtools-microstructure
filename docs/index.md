@@ -7,6 +7,9 @@ hide: toc
 <div markdown="block" class="home-grid">
 <div markdown="block">
 
+The `pynxtools-microstructure` plugin for `pynxtools` connects the Matlab software `mtex-toolbox/mtex` for orientation and texture analysis to `pynxtools` and the `NOMAD` RDM system.
+The plugin allows to convert orientation, texture, and microstructure feature reconstructions into a format that can be stored in NOMAD.
+
 ### Tutorial
 
 - [Installation guide](tutorial/installation.md)
