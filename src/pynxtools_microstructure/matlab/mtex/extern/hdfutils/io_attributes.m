@@ -40,7 +40,7 @@ classdef io_attributes
             % obj.typed_attributes = MapNested();
             obj.unique_attribute_names = containers.Map( ...
                 'KeyType', 'char', 'ValueType', 'logical');
-            obj.verbose = logical(0);
+            obj.verbose = false;
         end
         function add(obj, keyword, value)
             if isa(keyword, "char")
@@ -112,7 +112,7 @@ classdef io_attributes
             %     for j = 1:length(map_keys)
             %         disp(['    keyword: ', map_keys{j}, ' value:']);
             %         disp(map_vals{j});
-            %     end                    
+            %     end
             % end
             % thought the above solution is more elegant but it does
             % not work, maybe missing copy constructor in NestedMap class?
@@ -164,7 +164,7 @@ classdef io_attributes
             for i = 1:length(k)
                 disp(k);
                 disp(v);
-            end                
+            end
             disp('single-typed attributes');
             k = keys(obj.f32);
             v = values(obj.f32);

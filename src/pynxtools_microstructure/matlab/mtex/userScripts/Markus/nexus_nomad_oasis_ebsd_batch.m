@@ -110,8 +110,17 @@ mtex_plot_default = plottingConvention();
 ebsd_mime_types_to_use_mtex = {'.crc', '.ang', '.ctf', '.osc'};
 
 %% loop over projects
-% cnt = 0;
-for project = 1:836
+for project = 153:836
+    % ignore for now projects with data that are clear slice sets
+    % either in time or 3D-EBSD, that have so far just blown up
+    % the number of datasets but thereby also biased the collection
+    % towards particular studies
+    if ismember( ...
+            project, ...
+            [67, 91, 194, 203, 204, 217, 268, 284, 651, 656, 663, 779])
+        continue;
+    end
+
     project_id = sprintf('%03d', project);
     pattern = fullfile(source_directory, [project_id, '.*']);
     files = dir(pattern);
@@ -121,7 +130,7 @@ for project = 1:836
     end
     diary(logpath)
     diary on
-    
+
     for f = 1:length(files)
         [~, file_name, mime_type] = fileparts(files(f).name);
         if ismember(lower(mime_type), ebsd_mime_types_to_use_mtex)
@@ -158,13 +167,13 @@ for project = 1:836
                 source_directory ...
                 target_directory ...
                 logpath;
-                % cnt;
+            % cnt;
 
             % TODO configuration table
             % if ~strcmp(files(f).name, '186.f367a28f8b3ad6df24067e22c884dd31f7ff62cb895379a1f18ac7fb031354a3.ctf')
             %    continue
             % end
-            
+
             ifpath = fullfile(source_directory, files(f).name);
             ofpath = fullfile(target_directory, [file_name, mime_type, '.mtex.h5']);
             dumppath = fullfile(target_directory, [file_name, mime_type, '.mat']);
@@ -179,7 +188,7 @@ for project = 1:836
                 end
                 clearvars headerCell;
             end
-    
+
             gtic = tic;
 
             try
@@ -187,9 +196,9 @@ for project = 1:836
                 % reference_frame_convention = 's2e';
                 % disp(['reference_frame_convention: ' reference_frame_convention]);
                 % assuming just setting 2 is a very strong if not a wrong assumption
-                if strcmp(mime_type, '.crc')  % TODO modified crc/cpr loader
+                if strcmp(mime_type, '.crc')
                     ebsd_raw = loadEBSD_crc(ifpath, 'setting', 2);
-                elseif strcmp(mime_type, '.ang')             
+                elseif strcmp(mime_type, '.ang')
                     ebsd_raw = loadEBSD_ang(ifpath, 'setting', 2);
                 elseif strcmp(mime_type, '.osc')
                     ebsd_raw = loadEBSD_osc(ifpath);
@@ -207,50 +216,50 @@ for project = 1:836
                 disp([project_id, ': exception ', exception.message]);
                 continue;
             end
-            
+
             nexus_write_init(ofpath, perform_io);
             nexus_write_mtex_preferences( ...
                 ofpath, ...
                 '/entry1/roi1/ebsd/indexing', ...
                 perform_io, ...
                 mtexdir);
-            
+
             h5w = HdfFiveSeqHdl(ofpath);
             dsnm = '/entry1/profiling/load_elapsed_time';
             load_wall_clock = toc(load_tic);
             attr = io_attributes();
             attr.add('units', 's');
             h5w.nexus_write(dsnm, double(load_wall_clock), attr);
-    
+
             % ebsd_raw 2D EBSD scan point set, arbitrary ROI shapes
             % plot(ebsd_raw);
             if ebsd_io
                 ebsd_tic = tic;
-        
+
                 nexus_write_ebsd_phase( ...
                     ebsd_raw, ...
                     ofpath, ...
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io);
-        
+
                 nexus_write_ebsd_data( ...
                     ebsd_raw, ...
                     ofpath, ...
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io);
-                
+
                 % prepare a default plot on a square grid but represented
                 % as an implicit array instead of an EBSDsquare object
                 ebsd_sqr_hweb = nexus_squarify_ebsd( ...
                     ebsd_raw, ...
                     'h5web_max_size', 2^14 - 1);
-        
+
                 nexus_write_ebsd_overview( ...
                     ebsd_sqr_hweb, ...
                     ofpath, ...
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io);
-        
+
                 nexus_write_ebsd_phase_ipf( ...
                     ebsd_raw, ...
                     ebsd_sqr_hweb, ...
@@ -261,7 +270,7 @@ for project = 1:836
                     ipf_lgd_mtx_dct, ...
                     ipf_lgd_tsl_pg_map, ...
                     ipf_lgd_mtx_pg_map);
-        
+
                 h5w = HdfFiveSeqHdl(ofpath);
                 dsnm = '/entry1/profiling/ebsd_elapsed_time';
                 ebsd_wall_clock = toc(ebsd_tic);
@@ -269,7 +278,7 @@ for project = 1:836
                 attr.add('units', 's');
                 h5w.nexus_write(dsnm, double(ebsd_wall_clock), attr);
             end
-    
+
             if microstructure_io
                 nexus_write_ebsd_microstructure( ...
                     ebsd_raw, ...
@@ -277,7 +286,7 @@ for project = 1:836
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io);
             end
-            
+
             if odf_io
                 nexus_write_ebsd_odf( ...
                     ebsd_raw, ...
@@ -285,15 +294,15 @@ for project = 1:836
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io);
             end
-    
+
             if pf_io
                 % this next function has not been tested enough
-                % we do not need it also because ODF gets reported 
+                % we do not need it also because ODF gets reported
                 nexus_write_ebsd_pf( ...
                     ebsd_raw, ...
                     ofpath, ...
                     '/entry1/roi1/ebsd/indexing', ...
-                   perform_io);
+                    perform_io);
             end
 
             h5w = HdfFiveSeqHdl(ofpath);
@@ -312,7 +321,7 @@ for project = 1:836
             h5w.nexus_write('/entry1/profiling/total_elapsed_time', double(wall_clock), attr);
             disp([project_id, ' processed, writing Matlab restart file']);
 
-            save(dumppath,'-v7.3');
+            % save(dumppath,'-v7.3');
 
             % cnt = cnt + 1;
             % if cnt > 2

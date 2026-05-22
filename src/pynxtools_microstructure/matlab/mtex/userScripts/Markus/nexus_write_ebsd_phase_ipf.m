@@ -131,7 +131,7 @@ for phase_idx = 1:1:n_phases
                     low_level(:, x, :) = nxs_ipf_map_u8_f(:, idx(end:-1:1));
                 else
                     low_level(:, x, 1:1:grid(1)) = nxs_ipf_map_u8_f(:, offset+1:1:offset+grid(1));
-                end                    
+                end
             end
             attr = io_attributes();
             attr.add('long_name', 'IPF color-coded orientation mapping');

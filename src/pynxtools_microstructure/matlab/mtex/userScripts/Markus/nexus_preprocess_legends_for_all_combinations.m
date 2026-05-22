@@ -15,9 +15,9 @@ ipf_lgd_tsl_dct = containers.Map();
 for cs = 1:1:length(point_groups)
     pg = point_groups{cs};
     disp(pg);
-    for prj = 1:1:1 % 3      
+    for prj = 1:1:1 % 3
         ipf_key_mtx = ipfColorKey(crystalSymmetry(pg));
-       
+
         figure('visible','off');
         plot(ipf_key_mtx);
         if cs < 10
@@ -44,7 +44,7 @@ for cs = 1:1:length(point_groups)
         ipf_lgd_mtx_dct(pg) = low_level;
         clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj prefix;
 
-        ipf_key_tsl = ipfTSLKey(crystalSymmetry(pg));       
+        ipf_key_tsl = ipfTSLKey(crystalSymmetry(pg));
         figure('visible','off');
         plot(ipf_key_tsl);
         if cs < 10

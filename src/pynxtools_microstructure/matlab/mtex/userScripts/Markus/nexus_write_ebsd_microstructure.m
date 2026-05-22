@@ -29,8 +29,8 @@ discretization_threshold = 5;
 % is extremely slow
 % plot(ebsd_orig)
 disp('Grain reconstruction ...');
-% [grains,ebsd_orig.grainId,ebsd_orig.mis2mean] 
-% [grains, ebsd_orig.grainId] 
+% [grains,ebsd_orig.grainId,ebsd_orig.mis2mean]
+% [grains, ebsd_orig.grainId]
 grains = calcGrains( ...
     ebsd_orig('indexed'), ...
     'boundary', 'tight', ...
@@ -40,13 +40,13 @@ disp('Grain reconstruction: OK');
 % plot(grains)
 % use [val , idx] = max(grains.area('2d')); to find the largest grain
 % alternative grain reconstruction methods exist e.g.
-% for subtle orientation gradients, fast multi-scale clustering, 
+% for subtle orientation gradients, fast multi-scale clustering,
 % https://doi.org/10.1016/j.ultramic.2013.04.009
 % for the Forsterite example this is not useful due to interfaces strongly ragged
 % grains_fmc = calcGrains(ebsd('indexed'), 'boundary', 'tight', 'FMC', 3.5);
 % for subtle orientation gradients, Markov graph clustering
 % https://micans.org/mcl/, http://dx.doi.org/10.1007/s11661-018-4904-9
-% for the Forsterite example this tried to allocate a 294GB matrix 
+% for the Forsterite example this tried to allocate a 294GB matrix
 % grains_mcl = calcGrains(ebsd('indexed'), 'boundary', ...
 %     'tight', 'mcl', [1.24 50], 'soft', [0.2 0.3]*degree);
 % so for the run-through we use the default voronoi tessellation based
@@ -107,7 +107,7 @@ h5w.nexus_write(dsnm, discretization_threshold, attr);
 % dictionary lookup as used in several occasions in the code below
 if size(grains.boundary.F, 1) >= 2^32 - 1 || length(grains) >= 2^32 - 1
     error(['The interface network of grains has more individuals ' ...
-           'than the here used 32bit ID handling can deal with!']);
+        'than the here used 32bit ID handling can deal with!']);
 end
 
 %% summary statistics
@@ -209,7 +209,7 @@ end
 h5w.nexus_write(dsnm, double(grains.area('2d')), attr);
 dsnm = [grpnm '/indices_phase'];
 attr = io_attributes();
-h5w.nexus_write(dsnm, uint32(grains.phaseId), attr); 
+h5w.nexus_write(dsnm, uint32(grains.phaseId), attr);
 % 0 is boundary
 % convenience, can be logically/topologically inferred from entry1/interfaces
 dsnm = [grpnm '/boundary_contact'];

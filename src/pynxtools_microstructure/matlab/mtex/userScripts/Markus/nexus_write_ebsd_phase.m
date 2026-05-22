@@ -68,7 +68,7 @@ for phase_idx = 1:1:n_phases
     h5w.nexus_write(dsnm, uint32(1), attr);
     % respecting the assumption that for MTex phase 0
     % is always notIndexed and boundary !
-    
+
     % additional information for phases that have a point group
     if ~strcmp(ebsd_orig.mineralList{phase_idx}, 'notIndexed')
         grpnm = [parent '/phase' num2str(phase_id) '/unit_cell'];
@@ -93,7 +93,7 @@ for phase_idx = 1:1:n_phases
         attr.add('units', 'nm');
         h5w.nexus_write(dsnm, ebsd_orig.CSList{phase_idx}.cAxis.z * 0.1, attr);
         % angstroem to nm
-        
+
         dsnm = [grpnm '/alpha'];
         attr = io_attributes();
         attr.add('units', 'degree');

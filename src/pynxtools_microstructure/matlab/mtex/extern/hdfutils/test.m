@@ -74,9 +74,9 @@ char_1d = 'char_1d';
 
 % aa = io_info();
 % aa = io_info( [], [5, 1], 'MYHDF5_COMPRESSION_GZIP', 9);
-aa = io_info( char_1d, 9 )
-aa = io_info( u08_0d, 9 )
-aa = io_info( u08_1d, 9 )
+aa = io_info( char_1d, 9 );
+aa = io_info( u08_0d, 9 );
+aa = io_info( u08_1d, 9 );
 aa = io_info( u08_2d, 9 )
 aa = io_info( u08_3d, 9 )
 
@@ -132,7 +132,7 @@ for i = 1:length(attr.u08)
     disp(k{i});
     disp(v{i});
 end
-length(attr.u16)>=1
+length(attr.u16) >= 1;
 
 %% add support for scalar attributes
 %% add support for character arrays

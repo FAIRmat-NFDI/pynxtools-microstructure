@@ -88,7 +88,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
                 ', ' num2str(miller_set(k).l) '}'];
 
             pf = calcPDF(odf, miller_set(k));
-            [intensity, maxima] = max(pf, 'numLocal', 10);
+            [~, ~] = max(pf, 'numLocal', 10);
             % typical representation of polefigure is via S2Grid whose points are not
             % equally distributed though when projected into the equatorial plane
             % thus opposite approach for H5Web, sample a square and set
