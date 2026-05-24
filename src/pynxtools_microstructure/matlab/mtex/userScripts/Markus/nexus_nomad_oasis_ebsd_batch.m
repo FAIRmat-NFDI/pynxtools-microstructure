@@ -110,7 +110,7 @@ mtex_plot_default = plottingConvention();
 ebsd_mime_types_to_use_mtex = {'.crc', '.ang', '.ctf', '.osc'};
 
 %% loop over projects
-for project = 153:836
+for project = 837:836
     % ignore for now projects with data that are clear slice sets
     % either in time or 3D-EBSD, that have so far just blown up
     % the number of datasets but thereby also biased the collection
@@ -331,3 +331,4 @@ for project = 153:836
     end
     diary off;
 end
+disp('Batch queue completed');

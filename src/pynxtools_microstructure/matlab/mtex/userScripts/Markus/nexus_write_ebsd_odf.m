@@ -198,7 +198,7 @@ for phase_idx = 1:1:length(ebsd_orig.mineralList)
             kth = 3;
             delta = 10.*degree;
             [intensity, maxima] = max(odf, 'numLocal', kth);
-            disp(maxima);
+            % disp(maxima);
             e1_e2_e3 = zeros(3, length(maxima));
             e1_e2_e3(1, :) = maxima(:).phi1 / degree;
             e1_e2_e3(2, :) = maxima(:).Phi / degree;
