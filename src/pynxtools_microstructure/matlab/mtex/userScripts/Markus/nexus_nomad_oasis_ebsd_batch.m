@@ -110,21 +110,21 @@ mtex_plot_default = plottingConvention();
 ebsd_mime_types_to_use_mtex = {'.crc', '.ang', '.ctf', '.osc'};
 
 %% loop over projects
-for project = 837:836
+for project = 837:836  % 836
     % ignore for now projects with data that are clear slice sets
     % either in time or 3D-EBSD, that have so far just blown up
     % the number of datasets but thereby also biased the collection
     % towards particular studies
-    if ismember( ...
+    if ~ismember( ...
             project, ...
-            [67, 91, 194, 203, 204, 217, 268, 284, 651, 656, 663, 779])
-        continue;
+            [67, 91, 203, 204, 217, 284, 651, 656, 663, 779])
+        continue;  % legal "0" applies to 194, 268
     end
 
     project_id = sprintf('%03d', project);
     pattern = fullfile(source_directory, [project_id, '.*']);
     files = dir(pattern);
-    logpath = fullfile(target_directory, [project_id '.log']);
+    logpath = fullfile(target_directory, [project_id '.run01.log']);
     if exist("logpath", 'file')
         delete(logpath);
     end
@@ -177,156 +177,167 @@ for project = 837:836
             ifpath = fullfile(source_directory, files(f).name);
             ofpath = fullfile(target_directory, [file_name, mime_type, '.mtex.h5']);
             dumppath = fullfile(target_directory, [file_name, mime_type, '.mat']);
-            disp([project_id, ': ', ifpath]);
-            disp([project_id, ': ', ofpath]);
 
-            % check ctf header line of 'Channel Text File' to spot problems
-            if strcmp(mime_type, 'ctf')
-                headerCell = textscan(fopen(ifpath_main, 'r'), '%s', 1, 'Delimiter', '\n', 'Whitespace', ''); fclose(fid);
-                if ~startsWith("Channel Text File", headerCell{1}{1})
-                    continue;
-                end
-                clearvars headerCell;
-            end
-
-            gtic = tic;
-
-            try
-                load_tic = tic;
-                % reference_frame_convention = 's2e';
-                % disp(['reference_frame_convention: ' reference_frame_convention]);
-                % assuming just setting 2 is a very strong if not a wrong assumption
-                if strcmp(mime_type, '.crc')
-                    ebsd_raw = loadEBSD_crc(ifpath, 'setting', 2);
-                elseif strcmp(mime_type, '.ang')
-                    ebsd_raw = loadEBSD_ang(ifpath, 'setting', 2);
-                elseif strcmp(mime_type, '.osc')
-                    ebsd_raw = loadEBSD_osc(ifpath);
-                elseif strcmp(mime_type, '.ctf')
-                    ebsd_raw = loadEBSD_ctf(ifpath);
-                else
-                    continue;
-                end
-
-                if ~exist('ebsd_raw', 'var')
-                    % avoid writing mtex.h5 files for unimportable data
-                    continue;
-                end
-            catch exception
-                disp([project_id, ': exception ', exception.message]);
+            if isfile(ofpath)  % run02, do not reprocess files that exist
                 continue;
             end
 
-            nexus_write_init(ofpath, perform_io);
-            nexus_write_mtex_preferences( ...
-                ofpath, ...
-                '/entry1/roi1/ebsd/indexing', ...
-                perform_io, ...
-                mtexdir);
+            try
 
-            h5w = HdfFiveSeqHdl(ofpath);
-            dsnm = '/entry1/profiling/load_elapsed_time';
-            load_wall_clock = toc(load_tic);
-            attr = io_attributes();
-            attr.add('units', 's');
-            h5w.nexus_write(dsnm, double(load_wall_clock), attr);
-
-            % ebsd_raw 2D EBSD scan point set, arbitrary ROI shapes
-            % plot(ebsd_raw);
-            if ebsd_io
-                ebsd_tic = tic;
-
-                nexus_write_ebsd_phase( ...
-                    ebsd_raw, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-
-                nexus_write_ebsd_data( ...
-                    ebsd_raw, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-
-                % prepare a default plot on a square grid but represented
-                % as an implicit array instead of an EBSDsquare object
-                ebsd_sqr_hweb = nexus_squarify_ebsd( ...
-                    ebsd_raw, ...
-                    'h5web_max_size', 2^14 - 1);
-
-                nexus_write_ebsd_overview( ...
-                    ebsd_sqr_hweb, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-
-                nexus_write_ebsd_phase_ipf( ...
-                    ebsd_raw, ...
-                    ebsd_sqr_hweb, ...
+                disp([project_id, ': ', ifpath]);
+                disp([project_id, ': ', ofpath]);
+    
+                % check ctf header line of 'Channel Text File' to spot problems
+                if strcmp(mime_type, 'ctf')
+                    headerCell = textscan(fopen(ifpath_main, 'r'), '%s', 1, 'Delimiter', '\n', 'Whitespace', ''); fclose(fid);
+                    if ~startsWith("Channel Text File", headerCell{1}{1})
+                        continue;
+                    end
+                    clearvars headerCell;
+                end
+    
+                gtic = tic;
+    
+                try
+                    load_tic = tic;
+                    % reference_frame_convention = 's2e';
+                    % disp(['reference_frame_convention: ' reference_frame_convention]);
+                    % assuming just setting 2 is a very strong if not a wrong assumption
+                    if strcmp(mime_type, '.crc')
+                        ebsd_raw = loadEBSD_crc(ifpath, 'setting', 2);
+                    elseif strcmp(mime_type, '.ang')
+                        ebsd_raw = loadEBSD_ang(ifpath, 'setting', 2);
+                    elseif strcmp(mime_type, '.osc')
+                        ebsd_raw = loadEBSD_osc(ifpath);
+                    elseif strcmp(mime_type, '.ctf')
+                        ebsd_raw = loadEBSD_ctf(ifpath);
+                    else
+                        continue;
+                    end
+    
+                    if ~exist('ebsd_raw', 'var')
+                        % avoid writing mtex.h5 files for unimportable data
+                        continue;
+                    end
+                catch exception
+                    disp([project_id, ': exception ', exception.message]);
+                    continue;
+                end
+    
+                nexus_write_init(ofpath, perform_io);
+                nexus_write_mtex_preferences( ...
                     ofpath, ...
                     '/entry1/roi1/ebsd/indexing', ...
                     perform_io, ...
-                    ipf_lgd_tsl_dct, ...
-                    ipf_lgd_mtx_dct, ...
-                    ipf_lgd_tsl_pg_map, ...
-                    ipf_lgd_mtx_pg_map);
-
+                    mtexdir);
+    
                 h5w = HdfFiveSeqHdl(ofpath);
-                dsnm = '/entry1/profiling/ebsd_elapsed_time';
-                ebsd_wall_clock = toc(ebsd_tic);
+                dsnm = '/entry1/profiling/load_elapsed_time';
+                load_wall_clock = toc(load_tic);
                 attr = io_attributes();
                 attr.add('units', 's');
-                h5w.nexus_write(dsnm, double(ebsd_wall_clock), attr);
+                h5w.nexus_write(dsnm, double(load_wall_clock), attr);
+    
+                % ebsd_raw 2D EBSD scan point set, arbitrary ROI shapes
+                % plot(ebsd_raw);
+                if ebsd_io
+                    ebsd_tic = tic;
+    
+                    nexus_write_ebsd_phase( ...
+                        ebsd_raw, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+    
+                    nexus_write_ebsd_data( ...
+                        ebsd_raw, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+    
+                    % prepare a default plot on a square grid but represented
+                    % as an implicit array instead of an EBSDsquare object
+                    ebsd_sqr_hweb = nexus_squarify_ebsd( ...
+                        ebsd_raw, ...
+                        'h5web_max_size', 2^14 - 1);
+    
+                    nexus_write_ebsd_overview( ...
+                        ebsd_sqr_hweb, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+    
+                    nexus_write_ebsd_phase_ipf( ...
+                        ebsd_raw, ...
+                        ebsd_sqr_hweb, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io, ...
+                        ipf_lgd_tsl_dct, ...
+                        ipf_lgd_mtx_dct, ...
+                        ipf_lgd_tsl_pg_map, ...
+                        ipf_lgd_mtx_pg_map);
+    
+                    h5w = HdfFiveSeqHdl(ofpath);
+                    dsnm = '/entry1/profiling/ebsd_elapsed_time';
+                    ebsd_wall_clock = toc(ebsd_tic);
+                    attr = io_attributes();
+                    attr.add('units', 's');
+                    h5w.nexus_write(dsnm, double(ebsd_wall_clock), attr);
+                end
+    
+                if microstructure_io
+                    nexus_write_ebsd_microstructure( ...
+                        ebsd_raw, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+                end
+    
+                if odf_io
+                    nexus_write_ebsd_odf( ...
+                        ebsd_raw, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+                end
+    
+                if pf_io
+                    % this next function has not been tested enough
+                    % we do not need it also because ODF gets reported
+                    nexus_write_ebsd_pf( ...
+                        ebsd_raw, ...
+                        ofpath, ...
+                        '/entry1/roi1/ebsd/indexing', ...
+                        perform_io);
+                end
+    
+                h5w = HdfFiveSeqHdl(ofpath);
+                host_info = nexus_nomad_get_host_info();
+                attr = io_attributes();
+                h5w.nexus_write('/entry1/profiling/model', host_info.model, attr);
+                h5w.nexus_write('/entry1/profiling/operating_system', host_info.ostype, attr);
+                h5w.nexus_write('/entry1/profiling/architecture', host_info.architecture, attr);
+                h5w.nexus_write('/entry1/profiling/max_processes', uint32(1), attr);  % MTex is a single process app
+                h5w.nexus_write('/entry1/profiling/max_threads', uint32(host_info.max_threads), attr);
+                h5w.nexus_write('/entry1/profiling/max_gpus', uint32(0), attr);  % no GPUs yet by MTex
+    
+                wall_clock = toc(gtic);
+                attr = io_attributes();
+                attr.add('units', 's');
+                h5w.nexus_write('/entry1/profiling/total_elapsed_time', double(wall_clock), attr);
+                disp([project_id, ' processed, writing Matlab restart file']);
+    
+                % save(dumppath,'-v7.3');
+    
+                % cnt = cnt + 1;
+                % if cnt > 2
+                %     break;
+                % end
+            catch exception
+                disp([ifpath, ': exception ', exception.message]);
+                continue;
             end
-
-            if microstructure_io
-                nexus_write_ebsd_microstructure( ...
-                    ebsd_raw, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-            end
-
-            if odf_io
-                nexus_write_ebsd_odf( ...
-                    ebsd_raw, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-            end
-
-            if pf_io
-                % this next function has not been tested enough
-                % we do not need it also because ODF gets reported
-                nexus_write_ebsd_pf( ...
-                    ebsd_raw, ...
-                    ofpath, ...
-                    '/entry1/roi1/ebsd/indexing', ...
-                    perform_io);
-            end
-
-            h5w = HdfFiveSeqHdl(ofpath);
-            host_info = nexus_nomad_get_host_info();
-            attr = io_attributes();
-            h5w.nexus_write('/entry1/profiling/model', host_info.model, attr);
-            h5w.nexus_write('/entry1/profiling/operating_system', host_info.ostype, attr);
-            h5w.nexus_write('/entry1/profiling/architecture', host_info.architecture, attr);
-            h5w.nexus_write('/entry1/profiling/max_processes', uint32(1), attr);  % MTex is a single process app
-            h5w.nexus_write('/entry1/profiling/max_threads', uint32(host_info.max_threads), attr);
-            h5w.nexus_write('/entry1/profiling/max_gpus', uint32(0), attr);  % no GPUs yet by MTex
-
-            wall_clock = toc(gtic);
-            attr = io_attributes();
-            attr.add('units', 's');
-            h5w.nexus_write('/entry1/profiling/total_elapsed_time', double(wall_clock), attr);
-            disp([project_id, ' processed, writing Matlab restart file']);
-
-            % save(dumppath,'-v7.3');
-
-            % cnt = cnt + 1;
-            % if cnt > 2
-            %     break;
-            % end
         end
     end
     diary off;
