@@ -203,3 +203,5 @@ build/
 !src/pynxtools_microstructure/mtex-version.txt
 *.asv
 *.mat
+temporary_mtx_*.png
+temporary_tsl_*.png
