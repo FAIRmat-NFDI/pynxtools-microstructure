@@ -33,6 +33,7 @@
 # approx. 120h on a sixteen-core workstation, datasets were processed sequentially but
 # using multi-threading where provided via Matlab or MTex functions
 
+import logging
 import mmap
 import pathlib
 import re
@@ -40,12 +41,13 @@ import re
 import h5py
 import numpy as np
 from pynxtools.dataconverter.chunk import prioritized_axes_heuristic
-from pynxtools_em.utils.custom_logging import logger
 from pynxtools_em.utils.default_config import (
     DEFAULT_COMPRESSION_LEVEL,
     DEFAULT_VERBOSITY,
 )
 from pynxtools_em.utils.get_checksum import get_sha256_of_file_content
+
+logger = logging.getLogger("pynxtools-microstructure")
 
 
 def hfive_dataset_to_template(

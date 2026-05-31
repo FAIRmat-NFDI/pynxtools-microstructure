@@ -16,18 +16,20 @@
 # limitations under the License.
 #
 
+import logging
 import os
 from time import perf_counter_ns
 from typing import Any
 
 import numpy as np
-from pynxtools import logger
 from pynxtools.dataconverter.readers.base.reader import BaseReader
 from pynxtools_em.utils.default_config import SEPARATOR
 from pynxtools_em.utils.nx_atom_types import NxEmAtomTypesResolver
 from pynxtools_em.utils.nx_default_plots import NxEmDefaultPlotResolver
 
 from pynxtools_microstructure.parsers.nxs_mtex import NxEmNxsMtexParser
+
+logger = logging.getLogger("pynxtools-microstructure")
 
 
 class MICROSTRUCTUREReader(BaseReader):

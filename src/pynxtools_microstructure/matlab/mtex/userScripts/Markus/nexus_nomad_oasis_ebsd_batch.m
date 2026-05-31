@@ -110,12 +110,12 @@ mtex_plot_default = plottingConvention();
 ebsd_mime_types_to_use_mtex = {'.crc', '.ang', '.ctf', '.osc'};
 
 %% loop over projects
-for project = 837:836  % 836
+for project = 838:871  % 1:871
     % ignore for now projects with data that are clear slice sets
     % either in time or 3D-EBSD, that have so far just blown up
     % the number of datasets but thereby also biased the collection
     % towards particular studies
-    if ~ismember( ...
+    if ismember( ...
             project, ...
             [67, 91, 203, 204, 217, 284, 651, 656, 663, 779])
         continue;  % legal "0" applies to 194, 268
