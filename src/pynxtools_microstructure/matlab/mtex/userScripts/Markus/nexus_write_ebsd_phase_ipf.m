@@ -65,7 +65,12 @@ for phase_idx = 1:1:n_phases
         % the null-phase, for MTex @EBSD.phase == 0 but confusingly @EBSD.phaseId == 1 !
         % proj_vector = [vector3d.X, vector3d.Y, vector3d.Z];
         % proj_name = ['x', 'y', 'z'];
+        % if isempty(ebsd_grd.mineralList{phase_idx})
+        %    phase_name = 'unknown_name';
+        %else
         phase_name = ebsd_grd.mineralList{phase_idx};
+        % end
+        % phase_name = ebsd_grd.mineralList{phase_idx};
         disp(['nexus_write_ebsd_ipf ' num2str(phase_idx) '/' num2str(length(ebsd_grd.mineralList)) ' ' phase_name ' phase_id ' num2str(phase_id)]);
         % for proj_idx = 1:1:3
         color_models = {'tsl', 'mtex'};

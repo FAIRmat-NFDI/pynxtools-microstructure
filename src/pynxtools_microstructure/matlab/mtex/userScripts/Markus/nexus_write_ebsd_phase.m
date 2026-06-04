@@ -1,7 +1,8 @@
 function status = nexus_write_ebsd_phase(ebsd_orig, fpath, parent, perform_io)
 % Write list of phases to NeXus/HDF5 file
 
-% ebsd_orig:
+% fpath = ofpath;
+% ebsd_orig = ebsd_raw;
 % fpath: path and filename of NeXus/HDF5 results file
 % parent: parent HDF5 group below which to write
 
@@ -56,7 +57,14 @@ for phase_idx = 1:1:n_phases
 
     dsnm = [grpnm '/name'];
     attr = io_attributes();
-    h5w.nexus_write(dsnm, ebsd_orig.mineralList{phase_idx}, attr);
+    
+    if isempty(ebsd_orig.mineralList{phase_idx})
+        phase_name = 'unknown_name';
+    else
+        phase_name = ebsd_orig.mineralList{phase_idx};
+    end
+
+    h5w.nexus_write(dsnm, phase_name, attr);
 
     dsnm = [grpnm '/phase_id'];
     attr = io_attributes();
@@ -70,7 +78,7 @@ for phase_idx = 1:1:n_phases
     % is always notIndexed and boundary !
 
     % additional information for phases that have a point group
-    if ~strcmp(ebsd_orig.mineralList{phase_idx}, 'notIndexed')
+    if ~strcmp(phase_name, 'notIndexed')
         grpnm = [parent '/phase' num2str(phase_id) '/unit_cell'];
         attr = io_attributes();
         attr.add('NX_class', 'NXunit_cell');

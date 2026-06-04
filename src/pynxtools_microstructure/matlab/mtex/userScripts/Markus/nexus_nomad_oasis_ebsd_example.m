@@ -115,6 +115,11 @@ mime_type = 'ctf';
 ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
 ofpath = fullfile([ifpath_main '.mtex.h5']);
 % ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+mime_type = 'ang';
+ifpath_main = fullfile('/mnt/production/scidat_nomad_em/decompressed/300.3350ea00e300a9c6168947a729b632a7e505b5aba53041e244638514f7a9dfec.ang');
+ofpath = fullfile('/mnt/production/nexus_paper/300.3350ea00e300a9c6168947a729b632a7e505b5aba53041e244638514f7a9dfec.ang.mtex.h5');
+% ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+
 
 
 %mime_type = 'ctf';
