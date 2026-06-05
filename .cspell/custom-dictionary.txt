@@ -8,6 +8,7 @@ Heiko
 Hielscher
 Kühbach
 Markus
+OASISCFG
 Ralf
 autorecover
 bibtexparser
@@ -18,6 +19,7 @@ dset
 ebsd
 fairmat
 flatdict
+functors
 halfwidth
 hdfutils
 hfive
@@ -30,6 +32,7 @@ microstructure
 mosek
 mtex
 nfdi
+noncircular
 nxdl
 nxdls
 oasisb

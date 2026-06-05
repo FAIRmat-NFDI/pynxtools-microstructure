@@ -287,6 +287,7 @@ class NxEmNxsMtexParser:
             src = f"{src_prfx}/miscellaneous"
             trg = f"{trg_prfx}/COLLECTION[miscellaneous]"
             for dst_name in [
+                # "generating_help_mode",
                 "inside_poly",
                 "methods_advise",
                 "mosek",
@@ -294,7 +295,7 @@ class NxEmNxsMtexParser:
             ]:
                 template[f"{trg}/{dst_name}"] = bool(h5r[f"{src}/{dst_name}"])
             for dst_name in [
-                "text_interpreter",
+                # "text_interpreter",
                 "voronoi_method",
             ]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
@@ -518,16 +519,10 @@ class NxEmNxsMtexParser:
                 )
             for dst_name in ["polylines"]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-                hfive_attribute_to_template(
-                    src,
-                    dst_name,
-                    "depends_on",
-                    trg,
-                    dst_name,
-                    "depends_on",
-                    h5r,
-                    template,
+                template[f"{trg}/polylines/@depends_on"] = (
+                    f"/entry{self.entry_id}/roi1/ebsd/indexing/microstructure1/points"
                 )
+                # TODO BUG in the MTex script, value of the depends_on attribute "points", not "cg_point"
 
             src = f"{src_prfx}/configuration"
             trg = f"{trg_prfx}/configuration"
@@ -549,7 +544,10 @@ class NxEmNxsMtexParser:
                 "number_of_crystals",
             ]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-            # TODO orientation
+            src = f"{src_prfx}/crystals/orientation"
+            trg = f"{trg_prfx}/crystals/orientation"
+            for dst_name in ["orientation_quaternion"]:  # TODO "rotation_quaternion"]:
+                hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
 
             src = f"{src_prfx}/interfaces"
             trg = f"{trg_prfx}/interfaces"
@@ -586,13 +584,45 @@ class NxEmNxsMtexParser:
                     h5r,
                     template,
                 )
-            # TODO misorientation
+
+            src = f"{src_prfx}/interfaces/misorientation"
+            trg = f"{trg_prfx}/interfaces/COLLECTION[misorientation]"
+            for dst_name in ["misorientation_angle", "misorientation_euler"]:
+                hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+                hfive_attribute_to_template(
+                    src,
+                    dst_name,
+                    "units",
+                    trg,
+                    dst_name,
+                    "units",
+                    h5r,
+                    template,
+                )
+            hfive_dataset_to_template(
+                src,
+                "min_max_lookup_key",
+                trg,
+                "min_max_lookup_key",
+                h5r,
+                template,
+            )
+            hfive_attribute_to_template(
+                src,
+                "min_max_lookup_key",
+                "comment",
+                trg,
+                "min_max_lookup_key",
+                "comment",
+                h5r,
+                template,
+            )
 
             src = f"{src_prfx}/triple_junctions"
             trg = f"{trg_prfx}/triple_junctions"
             for dst_name in ["index_offset", "number_of_junctions"]:
                 hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
-            for dst_name in ["crystal", "polyline", "interface"]:
+            for dst_name in ["crystal", "interface"]:
                 hfive_dataset_to_template(
                     src,
                     f"indices_{dst_name}",
@@ -611,6 +641,19 @@ class NxEmNxsMtexParser:
                     h5r,
                     template,
                 )
+            # TODO: Bug in MTex not pointing to cg_polyline but to polyline
+            hfive_dataset_to_template(
+                src,
+                f"indices_polyline",
+                trg,
+                h5r,
+                f"indices_polyline",
+                template,
+            )
+            # TODO below line is a hotfix
+            template[f"{trg}/indices_polyline/@depends_on"] = (
+                f"/entry{self.entry_id}/roi1/ebsd/indexing/microstructure1/polylines"
+            )
 
         return template
 
@@ -675,9 +718,10 @@ class NxEmNxsMtexParser:
     ) -> dict:
         """Parse phase-specific orientation distribution function."""
         src = f"{src_prfx}/characteristics"
-        trg = f"{trg_prfx}/PROCESS[characteristics]"
-        for dst_name in ["texture_index"]:
-            hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+        trg = f"{trg_prfx}/characteristics"
+        hfive_dataset_to_template(
+            src, "texture_index", trg, "texture_index", h5r, template
+        )
 
         src = f"{src_prfx}/configuration"
         trg = f"{trg_prfx}/configuration"
@@ -745,4 +789,26 @@ class NxEmNxsMtexParser:
                 )
         for dst_name in ["title"]:
             hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+
+        src = f"{src_prfx}/kth_extrema"
+        trg = f"{trg_prfx}/kth_extrema"
+        for dst_name in ["intensity", "kth", "volume_fraction"]:
+            hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+        for dst_name in ["location", "theta"]:
+            hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+            hfive_attribute_to_template(
+                src, dst_name, "units", trg, dst_name, "units", h5r, template
+            )
+
+        src = f"{src_prfx}/noncircular"
+        trg = f"{trg_prfx}/PROCESS[noncircular]"
+        for dst_name in ["location"]:
+            hfive_dataset_to_template(src, dst_name, trg, dst_name, h5r, template)
+            hfive_attribute_to_template(
+                src, dst_name, "units", trg, dst_name, "units", h5r, template
+            )
+        hfive_dataset_to_template(
+            src, "volume_fraction", trg, "volume_fraction", h5r, template
+        )
+
         return template

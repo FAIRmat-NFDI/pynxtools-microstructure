@@ -27,7 +27,11 @@ from pynxtools_em.utils.default_config import SEPARATOR
 from pynxtools_em.utils.nx_atom_types import NxEmAtomTypesResolver
 from pynxtools_em.utils.nx_default_plots import NxEmDefaultPlotResolver
 
+from pynxtools_microstructure import get_pynxtools_microstructure_version
 from pynxtools_microstructure.parsers.nxs_mtex import NxEmNxsMtexParser
+from pynxtools_microstructure.parsers.oasis_config import (
+    NxMicrostructureNomadOasisConfigParser,
+)
 
 logger = logging.getLogger("pynxtools-microstructure")
 
@@ -47,19 +51,24 @@ class MICROSTRUCTUREReader(BaseReader):
         Read method to prepare the template.
         """
         logger.info(os.getcwd())
-        tic = perf_counter_ns()
+        tic: int = perf_counter_ns()
         template.clear()
 
-        entry_id = 1
+        entry_id: int = 1
 
-        parser = NxEmNxsMtexParser(file_paths[0], entry_id)
-        parser.parse(template)
+        for file_path in file_paths:
+            if file_path.endswith((".oasis.specific.yaml", ".oasis.specific.yml")):
+                eln = NxMicrostructureNomadOasisConfigParser(file_path, entry_id)
+                eln.parse(template)
+            elif file_path.endswith(".mtex.h5"):
+                mtex_hfive = NxEmNxsMtexParser(file_path, entry_id)
+                mtex_hfive.parse(template)
 
         nxplt = NxEmDefaultPlotResolver()
         nxplt.priority_select(template, entry_id)
 
-        sample = NxEmAtomTypesResolver(entry_id)
-        sample.identify_atom_types(template)
+        atom_types = NxEmAtomTypesResolver(entry_id)
+        atom_types.identify_atom_types(template)
 
         debugging = False
         if debugging:
@@ -70,10 +79,16 @@ class MICROSTRUCTUREReader(BaseReader):
                 logger.info(f"{keyword}{SEPARATOR}{type(value)}{SEPARATOR}{value}")
 
         logger.debug("Forward instantiated template to the NXS writer...")
-        toc = perf_counter_ns()
-        trg = f"/ENTRY[entry{entry_id}]/profiling/template_filling_elapsed_time"
-        template[f"{trg}"] = np.float64((toc - tic) / 1.0e9)
-        template[f"{trg}/@units"] = "s"
+        toc: int = perf_counter_ns()
+        trg: str = (
+            f"/ENTRY[entry{entry_id}]/profiling/CS_PROFILING_EVENT[event_pynxtools]"
+        )
+        template[f"{trg}/PROGRAM[program1]/program"] = "pynxtools-microstructure"
+        template[f"{trg}/PROGRAM[program1]/program/@version"] = (
+            f"{get_pynxtools_microstructure_version()}"
+        )
+        template[f"{trg}/template_filling_time"] = np.float64((toc - tic) / 1.0e9)
+        template[f"{trg}/template_filling_time/@units"] = "s"
 
         return template
 
