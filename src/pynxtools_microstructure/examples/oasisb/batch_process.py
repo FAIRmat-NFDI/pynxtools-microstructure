@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
 
 import bibtexparser
 import flatdict as fd
+from pynxtools.dataconverter.convert import convert
 from pynxtools.dataconverter.helpers import (
     get_nxdl_root_and_path,
     get_pynxtools_version,
@@ -219,7 +220,6 @@ def process_project(
         pynx_open_input_files: list[str] = [hfive_file, eln_file_path]
         logger.info(f"pynxtools-microstructure {pynx_open_input_files}")
 
-        """
         try:
             _ = convert(
                 input_file=tuple(pynx_open_input_files),
@@ -235,7 +235,6 @@ def process_project(
             logger.exception(
                 f"pynxtools-microstructure {output_file_path} failed", exc_info=True
             )
-        """
 
     # with open(
     #     f"{target_directory}{os.sep}{project_name}.{logger_file_path_suffix}.csv", "w"
