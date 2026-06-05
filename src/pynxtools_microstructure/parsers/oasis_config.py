@@ -66,7 +66,7 @@ class NxMicrostructureNomadOasisConfigParser:
             logger.warning(f"File {self.file_path} not found")
             return
 
-    def parse(self, template: dict) -> dict:
+    def parse(self, template: dict, mtex_hfive_file_path: str) -> dict:
         """Copy data from configuration applying mapping functors."""
         if self.supported:
             with open(self.file_path, "rb", 0) as fp:
@@ -74,10 +74,10 @@ class NxMicrostructureNomadOasisConfigParser:
             logger.info(
                 f"Parsing {self.file_path} NOMAD Oasis/config with SHA256 {self.file_path_sha256} ..."
             )
-            self.parse_example(template)
+            self.parse_example(template, mtex_hfive_file_path)
         return template
 
-    def parse_example(self, template: dict) -> dict:
+    def parse_example(self, template: dict, mtex_hfive_file_path: str) -> dict:
         """Copy data from example-specific section into template."""
         # customized entryID/experiment_description field
         composed_description: list[str] = []
@@ -146,5 +146,19 @@ class NxMicrostructureNomadOasisConfigParser:
                 template[f"/ENTRY[entry{self.entry_id}]/start_time"] = (
                     self.flat_metadata["start_time"]
                 )
+
+        # file_aliasing
+        if "file_path_aliasing" in self.flat_metadata:
+            if isinstance(self.flat_metadata["file_path_aliasing"], list):
+                for src_trg_dict in self.flat_metadata["file_path_aliasing"]:
+                    if all(key in src_trg_dict for key in ["src", "trg"]):
+                        if (
+                            mtex_hfive_file_path.rsplit("/", 1)[1]
+                            == f"{src_trg_dict['src'].rsplit('/', 1)[1]}.mtex.h5"
+                        ):
+                            template[
+                                f"/ENTRY[entry{self.entry_id}]/roiID[roi1]/ebsd/indexing/microstructureID[microstructure1]/configuration/programID[program1]/mtex/COLLECTION[path]/file_name"
+                            ] = src_trg_dict["trg"]
+                            break
 
         return template

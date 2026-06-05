@@ -56,13 +56,27 @@ class MICROSTRUCTUREReader(BaseReader):
 
         entry_id: int = 1
 
-        for file_path in file_paths:
-            if file_path.endswith((".oasis.specific.yaml", ".oasis.specific.yml")):
-                eln = NxMicrostructureNomadOasisConfigParser(file_path, entry_id)
-                eln.parse(template)
-            elif file_path.endswith(".mtex.h5"):
-                mtex_hfive = NxEmNxsMtexParser(file_path, entry_id)
-                mtex_hfive.parse(template)
+        # simple I/O logic, always the first of a mime_type and only one per mime_type
+        io_logic: dict[str, str] = {}
+        for mime_type in [".mtex.h5", ".oasis.specific.yaml"]:
+            for file_path in file_paths:
+                if file_path.endswith(mime_type):
+                    if mime_type not in io_logic:
+                        io_logic[mime_type] = file_path
+                        break
+
+        if ".mtex.h5" in io_logic and io_logic[".mtex.h5"] != "":
+            mtex_hfive = NxEmNxsMtexParser(io_logic[".mtex.h5"], entry_id)
+            mtex_hfive.parse(template)
+
+            if (
+                ".oasis.specific.yaml" in io_logic
+                and io_logic[".oasis.specific.yaml"] != ""
+            ):
+                eln = NxMicrostructureNomadOasisConfigParser(
+                    io_logic[".oasis.specific.yaml"], entry_id
+                )
+                eln.parse(template, io_logic[".mtex.h5"])
 
         nxplt = NxEmDefaultPlotResolver()
         nxplt.priority_select(template, entry_id)
