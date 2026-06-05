@@ -205,3 +205,4 @@ build/
 *.mat
 temporary_mtx_*.png
 temporary_tsl_*.png
+examples/oasisb/openalex
