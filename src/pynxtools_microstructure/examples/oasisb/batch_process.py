@@ -63,6 +63,7 @@ def process_project(
     alias_prefix_secret: str = "",
     openalex_file: str = "",
     logger_file_path_suffix: str = "",
+    nomad_project_name: str = "",
     # generate_eln_file: bool = True,
     # generate_nexus_file: bool = True,
     # time_zone_info: ZoneInfo = ZoneInfo("Europe/Berlin"),
@@ -82,6 +83,7 @@ def process_project(
     openalex_file : (optional) project-name-specific JSON file, retrieved from OpenAlex
         to provide additional metadata context to a project, e.g. D001.son
     logger_file_path_suffix : suffix to add to the name of the log file, e.g. run01
+    nomad_project_name : human-readable name used to display in the NOMAD UI overview
     """
 
     config: dict[str, str] = {
@@ -209,6 +211,7 @@ def process_project(
             bib,  # type: ignore
             alias_to_original,
             openalex,
+            nomad_project_name,
             write_yaml_file=True,
         )
         if not os.path.isfile(eln_file_path):
