@@ -184,7 +184,7 @@ def process_project(
                 openalex = fd.FlatDict(json.load(fp), "/")
                 # for key, value in openalex.items():
                 #     logger.info(f"openalex, {key}, {value}")
-        except (FileNotFoundError, json.JSONDecodeError, OSError):
+        except (FileNotFoundError, json.JSONDecodeError, OSError, TypeError):
             logger.error(f"Unable to load {openalex_file}")
 
     # one NeXus file per incoming mtex.h5 file
