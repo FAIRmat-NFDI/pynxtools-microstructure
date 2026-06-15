@@ -54,6 +54,8 @@ git clone https://github.com/FAIRmat-NFDI/pynxtools-microstructure.git \\
     --branch main \\
     --recursive pynxtools-microstructure
 cd pynxtools-microstructure
+git submodule sync --recursive
+git submodule update --init --recursive --jobs=4
 ```
 
 Next, we install the package in editable mode (together with its dependencies):
