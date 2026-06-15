@@ -20,7 +20,7 @@ h5w = HdfFiveSeqHdl(fpath);
 
 n_phases = length(ebsd_grd.CSList);
 if n_phases ~= length(ebsd_grd.mineralList)
-    status = logical(0);
+    status = false;
     return;
 end
 
@@ -46,7 +46,7 @@ for phase_idx = 1:1:n_phases
         error('ERROR: The phaseMap for this EBSD map uses an unexpected indexing!');
     end
     attr = io_attributes();
-    ret = h5w.nexus_write(dsnm, uint64(n_count_orig), attr);
+    h5w.nexus_write(dsnm, uint64(n_count_orig), attr);
     if ~strcmp(ebsd_orig.mineralList{phase_idx}, 'notIndexed')
         n_count_orig_indexed = n_count_orig_indexed + n_count_orig;
     end
@@ -65,7 +65,12 @@ for phase_idx = 1:1:n_phases
         % the null-phase, for MTex @EBSD.phase == 0 but confusingly @EBSD.phaseId == 1 !
         % proj_vector = [vector3d.X, vector3d.Y, vector3d.Z];
         % proj_name = ['x', 'y', 'z'];
+        % if isempty(ebsd_grd.mineralList{phase_idx})
+        %    phase_name = 'unknown_name';
+        %else
         phase_name = ebsd_grd.mineralList{phase_idx};
+        % end
+        % phase_name = ebsd_grd.mineralList{phase_idx};
         disp(['nexus_write_ebsd_ipf ' num2str(phase_idx) '/' num2str(length(ebsd_grd.mineralList)) ' ' phase_name ' phase_id ' num2str(phase_id)]);
         % for proj_idx = 1:1:3
         color_models = {'tsl', 'mtex'};
@@ -98,16 +103,16 @@ for phase_idx = 1:1:n_phases
             grpnm = [parent '/phase' num2str(phase_id) '/ipf' num2str(cm)];
             attr = io_attributes();
             attr.add('NX_class', 'NXmicrostructure_ipf');
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
 
             dsnm = [grpnm '/projection_direction'];
             attr = io_attributes();
             % v = proj_vector(proj_idx);
-            ret = h5w.nexus_write(dsnm, double(vector3d.X.xyz), attr);
+            h5w.nexus_write(dsnm, double(vector3d.X.xyz), attr);
             dsnm = [grpnm '/color_model'];
             attr = io_attributes();
             % v = proj_vector(proj_idx);
-            ret = h5w.nexus_write(dsnm, color_models{cm}, attr);
+            h5w.nexus_write(dsnm, color_models{cm}, attr);
 
             grpnm = [parent '/phase' num2str(phase_id) '/ipf' num2str(cm) '/map'];
             attr = io_attributes();
@@ -116,7 +121,7 @@ for phase_idx = 1:1:n_phases
             attr.add('axes', {'axis_y', 'axis_x'});
             attr.add('axis_y_indices', uint32(1));
             attr.add('axis_x_indices', uint32(0));
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
 
             dsnm = [grpnm '/data'];
             % low_level = uint8(uint32(zeros([3 grid(2) grid(1)])));
@@ -131,30 +136,30 @@ for phase_idx = 1:1:n_phases
                     low_level(:, x, :) = nxs_ipf_map_u8_f(:, idx(end:-1:1));
                 else
                     low_level(:, x, 1:1:grid(1)) = nxs_ipf_map_u8_f(:, offset+1:1:offset+grid(1));
-                end                    
+                end
             end
             attr = io_attributes();
             attr.add('long_name', 'IPF color-coded orientation mapping');
             attr.add('CLASS', 'IMAGE');
             attr.add('IMAGE_VERSION', '1.2');
             attr.add('SUBCLASS_VERSION', uint32(15));
-            ret = h5w.nexus_write(dsnm, low_level, attr);
+            h5w.nexus_write(dsnm, low_level, attr);
             dsnm = [grpnm '/axis_y'];
             attr = io_attributes();
             attr.add('units', scan_unit);
             attr.add('long_name', ['Calibrated coordinate along y-axis (' scan_unit ')']);
             if flip_rbg_y
-                ret = h5w.nexus_write(dsnm, nxs_ipf_y(end:-1:1), attr);
+                h5w.nexus_write(dsnm, nxs_ipf_y(end:-1:1), attr);
             else
-                ret = h5w.nexus_write(dsnm, nxs_ipf_y, attr);
+                h5w.nexus_write(dsnm, nxs_ipf_y, attr);
             end
             dsnm = [grpnm '/axis_x'];
             attr = io_attributes();
             attr.add('units', scan_unit);
             attr.add('long_name', ['Calibrated coordinate along x-axis (' scan_unit ')']);
-            ret = h5w.nexus_write(dsnm, nxs_ipf_x, attr);
+            h5w.nexus_write(dsnm, nxs_ipf_x, attr);
             dsnm = [grpnm '/title'];
-            ret = h5w.nexus_write(dsnm, ['IPF, X, ' pg ', ' color_models{cm} ', phase' num2str(phase_id) ', ' phase_name], attr);
+            h5w.nexus_write(dsnm, ['IPF, X, ' pg ', ' color_models{cm} ', phase' num2str(phase_id) ', ' phase_name], attr);
 
             %% add specific IPF color key used
             grpnm = [parent '/phase' num2str(phase_id) '/ipf' num2str(cm) '/legend'];
@@ -164,7 +169,7 @@ for phase_idx = 1:1:n_phases
             attr.add('axes', {'axis_y', 'axis_x'});
             attr.add('axis_y_indices', uint32(1));
             attr.add('axis_x_indices', uint32(0));
-            ret = h5w.nexus_write_group(grpnm, attr);
+            h5w.nexus_write_group(grpnm, attr);
             attr = io_attributes();
             % load precomputed data
             if cm == 1
@@ -194,7 +199,7 @@ for phase_idx = 1:1:n_phases
             end
 
             dsnm = [grpnm '/title'];
-            ret = h5w.nexus_write(dsnm, ['IPF, X, ' pg ', ' color_models{cm} ', phase' num2str(phase_id) ', ' phase_name], attr);
+            h5w.nexus_write(dsnm, ['IPF, X, ' pg ', ' color_models{cm} ', phase' num2str(phase_id) ', ' phase_name], attr);
 
             dsnm = [grpnm '/data'];
             attr = io_attributes();
@@ -202,19 +207,19 @@ for phase_idx = 1:1:n_phases
             attr.add('CLASS', 'IMAGE');
             attr.add('IMAGE_VERSION', '1.2');
             attr.add('SUBCLASS_VERSION', uint32(15));
-            ret = h5w.nexus_write(dsnm, low_level, attr);
+            h5w.nexus_write(dsnm, low_level, attr);
             % sz = size(im);
             sz = size(low_level); % 3 --> 0, x --> 1, y --> 2
             dsnm = [grpnm '/axis_y'];
             nxs_px_y = linspace(1, sz(3), sz(3));
             attr = io_attributes();
             attr.add('long_name', 'Pixel along y-axis');
-            ret = h5w.nexus_write(dsnm, nxs_px_y, attr);
+            h5w.nexus_write(dsnm, nxs_px_y, attr);
             dsnm = [grpnm '/axis_x'];
             nxs_px_x = linspace(1, sz(2), sz(2));
             attr = io_attributes();
             attr.add('long_name', 'Pixel along x-axis');
-            ret = h5w.nexus_write(dsnm, nxs_px_x, attr);
+            h5w.nexus_write(dsnm, nxs_px_x, attr);
         end
     end
 
@@ -223,11 +228,11 @@ end
 
 dsnm = [parent '/indexing_rate'];
 attr = io_attributes();
-ret = h5w.nexus_write(dsnm, ...
+h5w.nexus_write(dsnm, ...
     double(double(n_count_orig_indexed) / ...
     double(n_count_orig_total)), attr);
 
 disp('NeXus/HDF5 exporting of phase-specific IPFs: OK');
-status = logical(1);
+status = true;
 
 end

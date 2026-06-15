@@ -15,9 +15,9 @@ ipf_lgd_tsl_dct = containers.Map();
 for cs = 1:1:length(point_groups)
     pg = point_groups{cs};
     disp(pg);
-    for prj = 1:1:1 % 3      
+    for prj = 1:1:1 % 3
         ipf_key_mtx = ipfColorKey(crystalSymmetry(pg));
-       
+
         figure('visible','off');
         plot(ipf_key_mtx);
         if cs < 10
@@ -37,14 +37,14 @@ for cs = 1:1:length(point_groups)
         % TODO::this must not be y-flipped !
         for x = 1:sz(2)
             for y = 1:sz(1)
-                idx = y + (x - 1) * sz(1);
+                % idx = y + (x - 1) * sz(1);
                 low_level(:, x, y) = im(y, x, :);
             end
         end
         ipf_lgd_mtx_dct(pg) = low_level;
         clearvars -except point_groups ipf_lgd_mtx_dct ipf_lgd_tsl_dct cs pg prj prefix;
 
-        ipf_key_tsl = ipfTSLKey(crystalSymmetry(pg));       
+        ipf_key_tsl = ipfTSLKey(crystalSymmetry(pg));
         figure('visible','off');
         plot(ipf_key_tsl);
         if cs < 10
@@ -62,7 +62,7 @@ for cs = 1:1:length(point_groups)
         % TODO::this must not be y-flipped !
         for x = 1:sz(2)
             for y = 1:sz(1)
-                idx = y + (x - 1) * sz(1);
+                % idx = y + (x - 1) * sz(1);
                 low_level(:, x, y) = im(y, x, :);
             end
         end
@@ -75,4 +75,4 @@ save(fullfile(prefix, 'ipf_lgds.mat'));
 disp('IPF color legends preprocessed for all combinations.');
 disp('Results are stored in');
 disp(fullfile(prefix, 'ipf_lgds.mat'));
-status = logical(1);
+status = true;

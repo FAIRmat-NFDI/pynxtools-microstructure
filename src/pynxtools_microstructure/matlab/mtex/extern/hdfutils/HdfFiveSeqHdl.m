@@ -9,31 +9,31 @@ classdef HdfFiveSeqHdl
         verbose
     end
     methods
-%% constructor
+        %% constructor
         function obj = HdfFiveSeqHdl(h5fnm, varargin)
             obj.dspcid = -1;
             obj.plistid = -1;
             obj.dsetid = -1;
             obj.fileid = -1;
             obj.h5resultsfn = h5fnm;
-            obj.verbose = logical(0);
+            obj.verbose = false;
             if nargin > 1
                 if strcmp(varargin, 'verbose')
-                    obj.verbose = logical(1);
+                    obj.verbose = true;
                 end
             end
             % if obj.verbose
             %     disp('Reporting pieces of information relevant for developers');
             % end
         end
-%% generic file creation and access
+        %% generic file creation and access
         function r = nexus_create(obj, h5fnm)
             obj.h5resultsfn = h5fnm;
             obj.fileid = H5F.create( obj.h5resultsfn, 'H5F_ACC_TRUNC', 'H5P_DEFAULT', 'H5P_DEFAULT' );
             if H5I.is_valid(obj.fileid)
                 H5F.close(obj.fileid);
                 r = 'MYHDF5_SUCCESS';
-            else                
+            else
                 r = 'MYHDF5_FCLOSE_FAILED';
             end
         end
@@ -44,7 +44,7 @@ classdef HdfFiveSeqHdl
                 r = 'MYHDF5_SUCCESS';
             else
                 r = 'MYHDF5_FOPEN_FAILED';
-            end 
+            end
         end
 
         function r = nexus_close(obj)  % , previous_status )
@@ -65,7 +65,7 @@ classdef HdfFiveSeqHdl
             % ##MK::update status
             r = 'MYHDF5_SUCCESS';  %current_status;
         end
-%% nexus_write_group
+        %% nexus_write_group
         function r = nexus_write_group(obj, grpnm, attrs)
             obj.fileid = H5F.open(obj.h5resultsfn, 'H5F_ACC_RDWR', 'H5P_DEFAULT');
             if H5I.is_valid(obj.fileid)
@@ -128,150 +128,146 @@ classdef HdfFiveSeqHdl
             end
             r = 'MYHDF5_SUCCESS';
         end
-%% generic write
+        %% generic write
         function r = nexus_write_attributes(obj, loc_id, attrs)
-            % write a collection of attributes at node location call only from 
+            % write a collection of attributes at node location call only from
             % inside nexus_write_group or nexus_write as open instances with
-            % valid locids on obj.dsetid are expected!        
+            % valid locids on obj.dsetid are expected!
             if obj.verbose
                 disp('nexus_write_attributes');
             end
             % attrs.report();
             % if isa(attrs, "io_attributes")
-                k = {'u08', 'i08', 'u16', 'i16', 'u32', 'i32', ...
-                     'u64', 'i64', 'f32', 'f64', 'chr', 'chr_arr'};
-                v = {'H5T_STD_U8LE', 'H5T_STD_I8LE', ...
-                    'H5T_STD_U16LE', 'H5T_STD_I16LE', ...
-                    'H5T_STD_U32LE', 'H5T_STD_I32LE', ...
-                    'H5T_STD_U64LE', 'H5T_STD_I64LE', ...
-                    'H5T_IEEE_F32LE', 'H5T_IEEE_F64LE', ...
-                    'H5T_C_STRING', 'H5T_C_STRING'};
-                mapped_h5types = containers.Map(k, v);
-                % clearvars k v;                 
-                if H5I.is_valid(loc_id)
-                    if obj.verbose
-                        disp('Attaching to loc_id');
-                    end
-                    props = properties(attrs);  % typed_attributes);
-                    % iterate over all attribute data types, write their 
-                    % individual named attributes and values
-                    for i = 1:length(props)  
-                        if ~strcmp(props{i}, 'unique_attribute_names') & ~strcmp(props{i}, 'verbose')
-                            % disp(['Processing property ', props{i}]);
+            k = {'u08', 'i08', 'u16', 'i16', 'u32', 'i32', ...
+                'u64', 'i64', 'f32', 'f64', 'chr', 'chr_arr'};
+            v = {'H5T_STD_U8LE', 'H5T_STD_I8LE', ...
+                'H5T_STD_U16LE', 'H5T_STD_I16LE', ...
+                'H5T_STD_U32LE', 'H5T_STD_I32LE', ...
+                'H5T_STD_U64LE', 'H5T_STD_I64LE', ...
+                'H5T_IEEE_F32LE', 'H5T_IEEE_F64LE', ...
+                'H5T_C_STRING', 'H5T_C_STRING'};
+            mapped_h5types = containers.Map(k, v);
+            % clearvars k v;
+            if H5I.is_valid(loc_id)
+                if obj.verbose
+                    disp('Attaching to loc_id');
+                end
+                props = properties(attrs);  % typed_attributes);
+                % iterate over all attribute data types, write their
+                % individual named attributes and values
+                for i = 1:length(props)
+                    if ~strcmp(props{i}, 'unique_attribute_names') & ~strcmp(props{i}, 'verbose')
+                        % disp(['Processing property ', props{i}]);
 
-                            attr_dtypid = mapped_h5types(props{i});
-                            if strcmp(props{i}, 'chr') || strcmp(props{i}, 'chr_arr')
-                                attr_dtypid = H5T.copy('H5T_C_S1');
-                                H5T.set_cset(attr_dtypid, 'H5T_CSET_UTF8');
-                                H5T.set_size(attr_dtypid, 'H5T_VARIABLE');
-                                
-                                if strcmp(props{i}, 'chr')
-                                    k = keys(attrs.chr);
-                                    v = values(attrs.chr);
-                                    % v is character array for chr ...
-                                else
-                                    k = keys(attrs.chr_arr);
-                                    v = values(attrs.chr_arr);
-                                    % ... but a cell of character arrays for chr_arr
+                        attr_dtypid = mapped_h5types(props{i});
+                        if strcmp(props{i}, 'chr') || strcmp(props{i}, 'chr_arr')
+                            attr_dtypid = H5T.copy('H5T_C_S1');
+                            H5T.set_cset(attr_dtypid, 'H5T_CSET_UTF8');
+                            H5T.set_size(attr_dtypid, 'H5T_VARIABLE');
+
+                            if strcmp(props{i}, 'chr')
+                                k = keys(attrs.chr);
+                                v = values(attrs.chr);
+                                % v is character array for chr ...
+                            else
+                                k = keys(attrs.chr_arr);
+                                v = values(attrs.chr_arr);
+                                % ... but a cell of character arrays for chr_arr
+                            end
+                        else
+                            % because attributes does not for now work
+                            % with multimaps we need an inelegant case
+                            % selection, which I don't like ##MK
+                            if strcmp(props{i}, 'u08')
+                                k = keys(attrs.u08);
+                                v = values(attrs.u08);
+                            elseif strcmp(props{i}, 'i08')
+                                k = keys(attrs.i08);
+                                v = values(attrs.i08);
+                            elseif strcmp(props{i}, 'u16')
+                                k = keys(attrs.u16);
+                                v = values(attrs.u16);
+                            elseif strcmp(props{i}, 'i16')
+                                k = keys(attrs.i16);
+                                v = values(attrs.i16);
+                            elseif strcmp(props{i}, 'u32')
+                                k = keys(attrs.u32);
+                                v = values(attrs.u32);
+                            elseif strcmp(props{i}, 'i32')
+                                k = keys(attrs.i32);
+                                v = values(attrs.i32);
+                            elseif strcmp(props{i}, 'u64')
+                                k = keys(attrs.u64);
+                                v = values(attrs.u64);
+                            elseif strcmp(props{i}, 'i64')
+                                k = keys(attrs.i64);
+                                v = values(attrs.i64);
+                            elseif strcmp(props{i}, 'f32')
+                                k = keys(attrs.f32);
+                                v = values(attrs.f32);
+                            elseif strcmp(props{i}, 'f64')
+                                k = keys(attrs.f64);
+                                v = values(attrs.f64);
+                            else
+                            end
+                        end
+                        for j = 1:length(k)
+                            attrib_name = k{j};
+                            attrib_value = v{j};
+                            % for chr_arr one keyword with a cell
+                            % character array value set
+                            if strcmp(props{i}, 'chr') || isscalar(attrib_value)   % ##?????
+                                attr_spcid = H5S.create('H5S_SCALAR');
+                                if H5I.is_valid(attr_spcid)
+                                    attr_id = H5A.create(loc_id, attrib_name, attr_dtypid, attr_spcid, 'H5P_DEFAULT');
+                                    if H5I.is_valid(attr_id)
+                                        H5A.write(attr_id, attr_dtypid, attrib_value);
+                                        if obj.verbose
+                                            disp(['Wrote attribute named ', attrib_name]);
+                                        end
+                                        H5A.close(attr_id);
+                                    end
+                                    H5S.close(attr_spcid);
                                 end
                             else
-                                % because attributes does not for now work
-                                % with multimaps we need an inelegant case
-                                % selection, which I don't like ##MK
-                                if strcmp(props{i}, 'u08')
-                                    k = keys(attrs.u08);
-                                    v = values(attrs.u08);
-                                elseif strcmp(props{i}, 'i08')
-                                    k = keys(attrs.i08);
-                                    v = values(attrs.i08);
-                                elseif strcmp(props{i}, 'u16')
-                                    k = keys(attrs.u16);
-                                    v = values(attrs.u16);
-                                elseif strcmp(props{i}, 'i16')
-                                    k = keys(attrs.i16);
-                                    v = values(attrs.i16);
-                                elseif strcmp(props{i}, 'u32')
-                                    k = keys(attrs.u32);
-                                    v = values(attrs.u32);
-                                elseif strcmp(props{i}, 'i32')
-                                    k = keys(attrs.i32);
-                                    v = values(attrs.i32);
-                                elseif strcmp(props{i}, 'u64')
-                                    k = keys(attrs.u64);
-                                    v = values(attrs.u64);
-                                elseif strcmp(props{i}, 'i64')
-                                    k = keys(attrs.i64);
-                                    v = values(attrs.i64);
-                                elseif strcmp(props{i}, 'f32')
-                                    k = keys(attrs.f32);
-                                    v = values(attrs.f32);
-                                elseif strcmp(props{i}, 'f64')
-                                    k = keys(attrs.f64);
-                                    v = values(attrs.f64);
-                                else
+                                if obj.verbose
+                                    disp(['Considering non-scalar attribute named ', attrib_name]);
                                 end
-                            end
-                            for j = 1:length(k)
-                                attrib_name = k{j};
-                                attrib_value = v{j};
-                                % for chr_arr one keyword with a cell
-                                % character array value set
-                                if strcmp(props{i}, 'chr') || isscalar(attrib_value)   % ##?????
-                                    attr_spcid = H5S.create('H5S_SCALAR');     
-                                    if H5I.is_valid(attr_spcid)
-                                        attr_id = H5A.create(loc_id, attrib_name, attr_dtypid, attr_spcid, 'H5P_DEFAULT');
-                                        if H5I.is_valid(attr_id)
-                                            H5A.write(attr_id, attr_dtypid, attrib_value);
-                                            if obj.verbose
-                                                disp(['Wrote attribute named ', attrib_name]);
-                                            end
-                                            H5A.close(attr_id);
-                                        end
-                                        H5S.close(attr_spcid);
-                                    end
-                                else
-                                    if obj.verbose
-                                        disp(['Considering non-scalar attribute named ', attrib_name]);
-                                    end
-                                    rank = 1;
-                                    dims = 1;
+                                rank = 1;
+                                dims = 1;
+                                maxdims = dims;
+                                %if strcmp(props{i}, 'chr')
+                                %    dims = 1;
+                                %    maxdims = dims;
+                                %end
+                                if strcmp(props{i}, 'chr_arr')
+                                    dims = length(v{1});
                                     maxdims = dims;
-                                    %if strcmp(props{i}, 'chr')
-                                    %    dims = 1;
-                                    %    maxdims = dims;
-                                    %end
-                                    if strcmp(props{i}, 'chr_arr')
-                                        dims = length(v{1});
-                                        maxdims = dims;
-                                    end
-                                    attr_spcid = H5S.create_simple(rank, dims, maxdims);
-                                    if H5I.is_valid(attr_spcid)
-                                        attr_id = H5A.create(loc_id, attrib_name, attr_dtypid, ...
-                                            attr_spcid, 'H5P_DEFAULT', 'H5P_DEFAULT');
-                                        if H5I.is_valid(attr_id)
-                                            if strcmp(props{i}, 'chr_arr')
-                                                H5A.write(attr_id, attr_dtypid, attrib_value); %{'parting'; 'is'; 'such'; 'sweet sorrow'}); % attrib_value);
-                                            else
-                                               H5A.write(attr_id, attr_dtypid, attrib_value);
-                                            end
-                                            if obj.verbose
-                                                disp(['Wrote attribute named ', attrib_name]);
-                                            end
-                                            H5A.close(attr_id);
+                                end
+                                attr_spcid = H5S.create_simple(rank, dims, maxdims);
+                                if H5I.is_valid(attr_spcid)
+                                    attr_id = H5A.create(loc_id, attrib_name, attr_dtypid, ...
+                                        attr_spcid, 'H5P_DEFAULT', 'H5P_DEFAULT');
+                                    if H5I.is_valid(attr_id)
+                                        H5A.write(attr_id, attr_dtypid, attrib_value);
+                                        if obj.verbose
+                                            disp(['Wrote attribute named ', attrib_name]);
                                         end
-                                        H5S.close(attr_spcid);
+                                        H5A.close(attr_id);
                                     end
+                                    H5S.close(attr_spcid);
                                 end
                             end
                         end
                     end
+                end
                 % end
                 r = 'MYHDF5_SUCCESS';  % ##MK
             end
         end
         function r = nexus_write(obj, dsnm, val, attrs, varargin)
             % disp(['dst: ' dsnm]);
-            if ~isa(dsnm, "char") || length(dsnm) == 0
+            if ~isa(dsnm, "char") || isempty(dsnm)
                 if obj.verbose
                     disp('Argument dsnm must not be an empty character array!');
                 end
@@ -279,7 +275,7 @@ classdef HdfFiveSeqHdl
             end
             ifo = io_info(val, 1);
             % val, 0); no compression
-            % val, 1); compression 
+            % val, 1); compression
             % default is fastest compression (loss-less, gzip) as a
             % compromise between speed and dataset size reduction
             if ~ifo.is_valid
@@ -364,7 +360,7 @@ classdef HdfFiveSeqHdl
                     % The HDF5 library uses C-style ordering for multidimensional arrays, while MATLAB uses FORTRAN-style ordering.
                     % The dims and maxdims parameters assume C-style ordering
                     % rank = 1;
-                    % dims = [1]; 
+                    % dims = [1];
                     % maxdims = [1];
                     if isa(val, "char") || isstring(val)
                         obj.dspcid = H5S.create('H5S_SCALAR');
@@ -506,19 +502,19 @@ classdef HdfFiveSeqHdl
                                 obj.dspcid, 'H5P_DEFAULT', 'H5P_DEFAULT', 'H5P_DEFAULT');
                         end
                         if H5I.is_valid(obj.dsetid)
-                           if obj.verbose
-                               disp('H5I.is_valid(obj.dsetid)');
-                           end
-                           %H5S.select_hyperslab(obj.dspcid, 'H5S_SELECT_SET', offs, strd, cnt, blck);
-                           %disp('H5S.select_hyperslab');
-                           H5D.write(obj.dsetid, dtyp, obj.dspcid, obj.dspcid, 'H5P_DEFAULT', val);
-                           if obj.verbose
-                               disp(['Writing ', clean_abs_path, ' 2d success']);
-                           end
-                           obj.nexus_write_attributes(obj.dsetid, attrs);
+                            if obj.verbose
+                                disp('H5I.is_valid(obj.dsetid)');
+                            end
+                            %H5S.select_hyperslab(obj.dspcid, 'H5S_SELECT_SET', offs, strd, cnt, blck);
+                            %disp('H5S.select_hyperslab');
+                            H5D.write(obj.dsetid, dtyp, obj.dspcid, obj.dspcid, 'H5P_DEFAULT', val);
+                            if obj.verbose
+                                disp(['Writing ', clean_abs_path, ' 2d success']);
+                            end
+                            obj.nexus_write_attributes(obj.dsetid, attrs);
                         end
                     end
-                % ##MK::implement 3d
+                    % ##MK::implement 3d
                 end
             end
             if obj.verbose

@@ -1,4 +1,4 @@
-function status = nexus_write_ebsd_data(ebsd_orig, fpath, parent, perform_io)
+function status = nexus_write_ebsd_data(~, ~, ~, perform_io)
 % Write list of phases to NeXus/HDF5 file
 
 % ebsd_orig:
@@ -11,5 +11,5 @@ if ~perform_io
     return;
 end
 disp('NeXus/HDF5 exporting of EBSD data: OK');
-status = logical(1);
+status = true;
 end

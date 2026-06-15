@@ -1,11 +1,11 @@
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+<!-- [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![](https://github.com/FAIRmat-NFDI/pynxtools-microstructure/actions/workflows/pytest.yml/badge.svg)
 ![](https://github.com/FAIRmat-NFDI/pynxtools-microstructure/actions/workflows/pylint.yml/badge.svg)
 ![](https://github.com/FAIRmat-NFDI/pynxtools-microstructure/actions/workflows/publish.yml/badge.svg)
 ![](https://img.shields.io/pypi/pyversions/pynxtools-microstructure)
 ![](https://img.shields.io/pypi/l/pynxtools-microstructure)
 ![](https://img.shields.io/pypi/v/pynxtools-microstructure)
-![Coverage Status](https://coveralls.io/repos/github/FAIRmat-NFDI/pynxtools-microstructure/badge.svg?branch=main)
+![Coverage Status](https://coveralls.io/repos/github/FAIRmat-NFDI/pynxtools-microstructure/badge.svg?branch=main)-->
 
 # `pynxtools-microstructure`: A `pynxtools` reader for MICROSTRUCTURE data
 

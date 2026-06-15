@@ -16,18 +16,24 @@
 # limitations under the License.
 #
 
+import logging
 import os
 from time import perf_counter_ns
 from typing import Any
 
 import numpy as np
-from pynxtools import logger
 from pynxtools.dataconverter.readers.base.reader import BaseReader
 from pynxtools_em.utils.default_config import SEPARATOR
 from pynxtools_em.utils.nx_atom_types import NxEmAtomTypesResolver
 from pynxtools_em.utils.nx_default_plots import NxEmDefaultPlotResolver
 
+from pynxtools_microstructure import get_pynxtools_microstructure_version
 from pynxtools_microstructure.parsers.nxs_mtex import NxEmNxsMtexParser
+from pynxtools_microstructure.parsers.oasis_config import (
+    NxMicrostructureNomadOasisConfigParser,
+)
+
+logger = logging.getLogger("pynxtools-microstructure")
 
 
 class MICROSTRUCTUREReader(BaseReader):
@@ -45,19 +51,38 @@ class MICROSTRUCTUREReader(BaseReader):
         Read method to prepare the template.
         """
         logger.info(os.getcwd())
-        tic = perf_counter_ns()
+        tic: int = perf_counter_ns()
         template.clear()
 
-        entry_id = 1
+        entry_id: int = 1
 
-        parser = NxEmNxsMtexParser(file_paths[0], entry_id)
-        parser.parse(template)
+        # simple I/O logic, always the first of a mime_type and only one per mime_type
+        io_logic: dict[str, str] = {}
+        for mime_type in [".mtex.h5", ".oasis.specific.yaml"]:
+            for file_path in file_paths:
+                if file_path.endswith(mime_type):
+                    if mime_type not in io_logic:
+                        io_logic[mime_type] = file_path
+                        break
+
+        if ".mtex.h5" in io_logic and io_logic[".mtex.h5"] != "":
+            mtex_hfive = NxEmNxsMtexParser(io_logic[".mtex.h5"], entry_id)
+            mtex_hfive.parse(template)
+
+            if (
+                ".oasis.specific.yaml" in io_logic
+                and io_logic[".oasis.specific.yaml"] != ""
+            ):
+                eln = NxMicrostructureNomadOasisConfigParser(
+                    io_logic[".oasis.specific.yaml"], entry_id
+                )
+                eln.parse(template, io_logic[".mtex.h5"])
 
         nxplt = NxEmDefaultPlotResolver()
         nxplt.priority_select(template, entry_id)
 
-        sample = NxEmAtomTypesResolver(entry_id)
-        sample.identify_atom_types(template)
+        atom_types = NxEmAtomTypesResolver(entry_id)
+        atom_types.identify_atom_types(template)
 
         debugging = False
         if debugging:
@@ -68,10 +93,16 @@ class MICROSTRUCTUREReader(BaseReader):
                 logger.info(f"{keyword}{SEPARATOR}{type(value)}{SEPARATOR}{value}")
 
         logger.debug("Forward instantiated template to the NXS writer...")
-        toc = perf_counter_ns()
-        trg = f"/ENTRY[entry{entry_id}]/profiling/template_filling_elapsed_time"
-        template[f"{trg}"] = np.float64((toc - tic) / 1.0e9)
-        template[f"{trg}/@units"] = "s"
+        toc: int = perf_counter_ns()
+        trg: str = (
+            f"/ENTRY[entry{entry_id}]/profiling/CS_PROFILING_EVENT[event_pynxtools]"
+        )
+        template[f"{trg}/PROGRAM[program1]/program"] = "pynxtools-microstructure"
+        template[f"{trg}/PROGRAM[program1]/program/@version"] = (
+            f"{get_pynxtools_microstructure_version()}"
+        )
+        template[f"{trg}/template_filling_time"] = np.float64((toc - tic) / 1.0e9)
+        template[f"{trg}/template_filling_time/@units"] = "s"
 
         return template
 

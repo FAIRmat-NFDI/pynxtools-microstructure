@@ -12,9 +12,9 @@ classdef io_info
         verbose
     end
     methods
-        %% constructor, ##MK::use the most frequently one first 
+        %% constructor, ##MK::use the most frequently one first
         function obj = io_info( buf, cmprss_opts )  % chk, cmprss
-            % simplified for now 
+            % simplified for now
             obj.shape = [];
             obj.chunk = [];
             obj.compression = 'MYHDF5_COMPRESSION_NONE';
@@ -24,13 +24,13 @@ classdef io_info
             obj.dims = -1; % unknown number of dimensions
             obj.n_values = 0;
             obj.dtype = '';
-            obj.verbose = logical(0);
+            obj.verbose = false;
 
             if nargin == 2
                 supported_dtypes = ["uint8", "int8", ...
                     "uint16", "int16", ...
                     "uint32", "int32", ...
-                    "uint64", "int64", ...                    
+                    "uint64", "int64", ...
                     "single", "double", ...
                     "char", "logical"];
                 mapped_h5types = ["H5T_STD_U8LE", "H5T_STD_I8LE", ...
@@ -63,10 +63,10 @@ classdef io_info
                         if length(shp) == 2 || length(shp) == 3  % currently supporting scalar, 1d, 2d, and 3d
                             obj.shape = shp;
                             obj.n_values = prod(shp);
-                            if numel(unique(shp)) == 1 && shp(1) == 1
+                            if isscalar(unique(shp)) && shp(1) == 1
                                 % no chunking for scalar or single value 1d array
                             else
-                                if any(shp == 1) % check 
+                                if any(shp == 1) % check
                                     obj.dims = 1;
                                 else
                                     if numel(shp) == 2
@@ -89,11 +89,11 @@ classdef io_info
                                 if ismember(uint8(cmprss_opts), uint8([linspace(1, 9, 9)]))
                                     if ~isa(buf, "char")
                                         obj.compression = 'MYHDF5_COMPRESSION_GZIP';
-                                        obj.compression_opts = uint8(cmprss_opts);                    
+                                        obj.compression_opts = uint8(cmprss_opts);
                                         obj.is_chunked = true;
                                         obj.chunk = obj.shape;
                                     end
-                                end                 
+                                end
                             end
                         else
                             obj.is_valid = false;

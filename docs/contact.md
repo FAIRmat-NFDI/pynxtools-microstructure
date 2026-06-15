@@ -6,7 +6,7 @@ You can reach us through different channels. You can send an email directly to o
 
 | Name | E-mail     | Github profiles |
 |------|------------|-----------------|
-| The NOMAD Authors | [fairmat@physik.hu-berlin.de](mailto:fairmat@physik.hu-berlin.de) |  |
+| Markus Kühbach | [markus.kuehbach@physik.hu-berlin.de](mailto:markus.kuehbach@physik.hu-berlin.de) |  |
 
 Alternatively, you can also:
 

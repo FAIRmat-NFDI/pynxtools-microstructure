@@ -1,14 +1,13 @@
-function out = nexus_squarify_map(ebsd_orig, varargin)
+function out = nexus_squarify_ebsd(ebsd_orig, varargin)
 
 nlimit = get_option(varargin,'h5web_max_size');
 
-scan_unit = 'n/a';
 if strcmp(ebsd_orig.scanUnit, 'um')
-    scan_unit = 'µm'; 
+    scan_unit = 'µm';
 else
     scan_unit = lower(ebsd_orig.scanUnit);
 end
-% get roi extent assuming x and y are scan point center positions 
+% get roi extent assuming x and y are scan point center positions
 % individually exact details depend on the flight plan of the scan box
 % from the microscope
 xmin = min(ebsd_orig.pos.x);

@@ -17,17 +17,18 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pynxtools>=0.13.2",
+    "pynxtools>=0.14",
     "pynxtools-em>=0.4.4", 
 ]
 
 [project.optional-dependencies]
 dev = [
     "mypy",
-    "ruff>=0.15.0",
+    "ruff>=0.15",
     "pytest",
     "pytest-cov",
     "pytest-timeout",
@@ -45,7 +46,7 @@ docs = [
     "pymdown-extensions",
     "mkdocs-click"
 ]
-nomad = ["nomad-lab[infrastructure]>=1.4.1"]
+nomad = ["nomad-lab[infrastructure]>=1.4.2"]
 north = [
     "jupyterlab-h5web",
     "jupyterlab",

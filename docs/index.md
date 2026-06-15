@@ -4,6 +4,8 @@ hide: toc
 
 # Documentation for pynxtools-microstructure
 
+The `pynxtools-microstructure` plugin for [`pynxtools`](https://github.com/FAIRmat-NFDI/pynxtools) connects the Matlab software [`mtex-toolbox/mtex`](https://github.com/mtex-toolbox/mtex) for orientation and texture analysis to `pynxtools` and the [`NOMAD`](https://nomad-lab.eu/nomad-lab) RDM system. The plugin allows to convert orientation, texture, and microstructure feature reconstructions into a format that can be stored in NOMAD.
+
 <div markdown="block" class="home-grid">
 <div markdown="block">
 
@@ -17,10 +19,10 @@ hide: toc
 
 ### How-to guides
 
-How-to guides provide step-by-step instructions for a wide range of tasks, with the overarching topics:
+- [Connect to and config `mtex`](how-tos/mtex.md)
+- [Multithreaded grain reconstruction](how-tos/jcvoronoi.md)
 
 </div>
-
 <div markdown="block">
 
 ### Learn
@@ -33,7 +35,7 @@ How-to guides provide step-by-step instructions for a wide range of tasks, with 
 ### Reference
 
 </div>
-</div>
+</div markdown="block">
 
 <h2> Contact </h2>
 

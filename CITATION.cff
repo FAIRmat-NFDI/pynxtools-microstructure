@@ -1,37 +1,37 @@
 cff-version: 1.2.0
 title: 'pynxtools-microstructure'
-version: 0.1.0
 message:
   If you use this software, please cite it using the
   metadata from this file.
 type: software
+version: 0.1.0
 authors:
   - given-names: Markus
     family-names: Kühbach
     orcid: 'https://orcid.org/0000-0002-7117-5196'
-  - given-names: Christoph
+  - given-names: Ralf
+    family-names: Hielscher
+    orcid: 'https://orcid.org/0000-0002-6342-1799'
+  - given-names: Christoph T.
     family-names: Koch
     orcid: 'https://orcid.org/0000-0002-3984-1523'
-  - given-names: Heiko B.
-    family-names: Weber
-    orcid: 'https://orcid.org/0000-0002-6403-9022'
   - given-names: Claudia
     family-names: Draxl
     orcid: 'https://orcid.org/0000-0003-3523-6657'
+  - given-names: Heiko B.
+    family-names: Weber
+    orcid: 'https://orcid.org/0000-0002-6403-9022'
+
 repository-code: 'https://github.com/FAIRmat-NFDI/pynxtools-microstructure'
-keywords:
-  - NeXus
-  - pynxtools
-  - NOMAD
-  - Microstructure
 abstract:
+
   pynxtools-microstructure is a reader plugin for pynxtools (https://github.com/FAIRmat-NFDI/pynxtools) written in Python.
 
-  The work is funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 460197019 (FAIRmat)
-  (https://gepris.dfg.de/gepris/projekt/460197019?language=en).
+  This work is part of the FAIRmat project (project ID 460197019), funded by the Deutsche
+  Forschungsgemeinschaft (DFG, German Research Foundation)
+  (https://gepris.dfg.de/gepris/projekt/460197019?language=en). Visit the
+  [FAIRmat page](https://www.fairmat-nfdi.eu/fairmat/about-fairmat/consortium-fairmat) for more info.
+
+
 license: Apache-2.0
-funding:
-  - name: Deutsche Forschungsgemeinschaft
-    award-number: 460197019
-    title: FAIRmat - FAIR Data Infrastructure for Condensed-Matter Physics and the Chemical Physics of Solids
-    award-uri: https://gepris.dfg.de/gepris/projekt/460197019?language=en
+

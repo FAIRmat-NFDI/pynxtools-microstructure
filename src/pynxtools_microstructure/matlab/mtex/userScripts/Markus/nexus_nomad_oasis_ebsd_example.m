@@ -62,7 +62,6 @@ if flip_y  % for some versions of NOMAD and H5Web the RGB widget does not
     % have the flipy button, so we need to flip eventually hard the data
     % that is a workaround
     k = ipf_lgd_tsl_dct.keys;
-    v = ipf_lgd_tsl_dct.values;
     for pg = 1:1:length(point_groups)
         tmp = ipf_lgd_tsl_dct(k{pg});
         ny = size(tmp, 3);
@@ -72,9 +71,8 @@ if flip_y  % for some versions of NOMAD and H5Web the RGB widget does not
         end
         ipf_lgd_tsl_dct(k{pg}) = flp;
     end
-    clearvars k v;
+    clearvars k;
     k = ipf_lgd_mtx_dct.keys;
-    v = ipf_lgd_mtx_dct.values;
     for pg = 1:1:length(point_groups)
         tmp = ipf_lgd_mtx_dct(k{pg});
         ny = size(tmp, 3);
@@ -84,7 +82,7 @@ if flip_y  % for some versions of NOMAD and H5Web the RGB widget does not
         end
         ipf_lgd_mtx_dct(k{pg}) = flp;
     end
-    clearvars k v pg tmp ny flp y;
+    clearvars k pg tmp ny flp y;
     disp('Precomputed IPF legends for all point groups flipped along y: OK');
 else
     disp('Use precomputed IPF legends for all point groups unflipped: OK');
@@ -116,12 +114,17 @@ mtex_plot_default = plottingConvention();
 mime_type = 'ctf';
 ifpath_main = fullfile(outputdir, '162.f75d30a7c21369a2b4ef68264ca0656463d4c0094474a0687122efda3254b394.ctf');
 ofpath = fullfile([ifpath_main '.mtex.h5']);
-ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+% ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+mime_type = 'ang';
+ifpath_main = fullfile('/mnt/production/scidat_nomad_em/decompressed/300.3350ea00e300a9c6168947a729b632a7e505b5aba53041e244638514f7a9dfec.ang');
+ofpath = fullfile('/mnt/production/nexus_paper/300.3350ea00e300a9c6168947a729b632a7e505b5aba53041e244638514f7a9dfec.ang.mtex.h5');
+% ofpath = fullfile([ifpath_main '.mtex.h5.nozip.h5']);
+
 
 
 %mime_type = 'ctf';
 %ifpath_main = fullfile(inputdir, 'Forsterite.ctf');
-%token = replace(ifpath_main, inputdir, ''); 
+%token = replace(ifpath_main, inputdir, '');
 %ofpath = fullfile(outputdir, [token '.mtex.h5']);
 %clearvars token;
 
@@ -134,9 +137,14 @@ disp(['ofpath: ' ofpath]);
 
 % check ctf header line of 'Channel Text File' to spot problems
 if strcmp(mime_type, 'ctf')
-    header = textread(ifpath_main,'%s', 1, ...
-        'delimiter', newline, 'whitespace','');
-    if ~startsWith("Channel Text File", header{1})
+    % header = textread(ifpath_main,'%s', 1, ...
+    %     'delimiter', newline, 'whitespace','');
+    fid = fopen(ifpath_main, 'r');
+    headerCell = textscan(fid, '%s', ...
+        1, 'Delimiter', '\n', 'Whitespace', '');
+    fclose(fid);
+    header = headerCell{1}{1};
+    if ~startsWith("Channel Text File", header)
         % nothing
     end
 end
@@ -145,12 +153,12 @@ end
 
 gtic = tic;
 load_tic = tic;
-status = nexus_write_init(ofpath, perform_io);
-status = nexus_write_mtex_preferences( ...
-        ofpath, ...
-        '/entry1/roi1/ebsd/indexing', ...
-        perform_io, ...
-        mtexdir);
+nexus_write_init(ofpath, perform_io);
+nexus_write_mtex_preferences( ...
+    ofpath, ...
+    '/entry1/roi1/ebsd/indexing', ...
+    perform_io, ...
+    mtexdir);
 return
 
 reference_frame_convention = 's2e';
@@ -177,7 +185,7 @@ else
 end
 
 h5w = HdfFiveSeqHdl(ofpath);
-dsnm = ['/entry1/profiling/load_elapsed_time'];
+dsnm = '/entry1/profiling/load_elapsed_time';
 load_wall_clock = toc(load_tic);
 attr = io_attributes();
 attr.add('units', 's');
@@ -187,38 +195,38 @@ h5w.nexus_write(dsnm, double(load_wall_clock), attr);
 % plot(ebsd_raw);
 ebsd_tic = tic;
 
-if ebsd_io    
-    status = nexus_write_ebsd_phase( ...
+if ebsd_io
+    nexus_write_ebsd_phase( ...
         ebsd_raw, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
         perform_io);
-    
-    status = nexus_write_ebsd_data( ...
+
+    nexus_write_ebsd_data( ...
         ebsd_raw, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
         perform_io);
-    
+
     % prepare a default plot on a square grid but represented
     % as an implicit array instead of an EBSDsquare object
     ebsd_sqr_roi_hweb = nexus_squarify_ebsd( ...
         ebsd_raw, ...
         'h5web_max_size', 2^14 - 1);
-    
-    status = nexus_write_ebsd_overview( ...
+
+    nexus_write_ebsd_overview( ...
         ebsd_sqr_roi_hweb, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
         perform_io);
-    
+
     ebsd_sqr_ipf_hweb = nexus_squarify_ebsd( ...
         ebsd_raw, ...
         'h5web_max_size', 2^14 - 1);
     % was 2^11 - 1, 2^12 - 1 works fine with newer H5Web and h5grove
     % maybe 2^14 - 1 working as well ?
-     
-    status = nexus_write_ebsd_phase_ipf( ...
+
+    nexus_write_ebsd_phase_ipf( ...
         ebsd_raw, ...
         ebsd_sqr_ipf_hweb, ...
         ofpath, ...
@@ -228,7 +236,7 @@ if ebsd_io
         ipf_lgd_mtx_dct, ...
         ipf_lgd_tsl_pg_map, ...
         ipf_lgd_mtx_pg_map);
-    
+
     h5w = HdfFiveSeqHdl(ofpath);
     dsnm = '/entry1/profiling/ebsd_elapsed_time';
     ebsd_wall_clock = toc(ebsd_tic);
@@ -238,7 +246,7 @@ if ebsd_io
 end
 
 if microstructure_io
-    status = nexus_write_ebsd_microstructure( ...
+    nexus_write_ebsd_microstructure( ...
         ebsd_raw, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
@@ -246,7 +254,7 @@ if microstructure_io
 end
 
 if odf_io
-    status = nexus_write_ebsd_odf( ...
+    nexus_write_ebsd_odf( ...
         ebsd_raw, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
@@ -255,7 +263,7 @@ end
 
 if pf_io
     % this next function has not been tested enough
-    status = nexus_write_ebsd_pf( ...
+    nexus_write_ebsd_pf( ...
         ebsd_raw, ...
         ofpath, ...
         '/entry1/roi1/ebsd/indexing', ...
